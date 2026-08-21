@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 
 namespace LearnMS.API.ThirdParties.YouTube;
@@ -6,7 +7,14 @@ public static class YouTubePlayerHtml
 {
     public static string Build(string videoId)
     {
-        var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(videoId));
+        var key = RandomNumberGenerator.GetBytes(7);
+        var data = Encoding.UTF8.GetBytes(videoId);
+        var packed = new byte[1 + key.Length + data.Length];
+        packed[0] = (byte)key.Length;
+        Buffer.BlockCopy(key, 0, packed, 1, key.Length);
+        for (var i = 0; i < data.Length; i++)
+            packed[1 + key.Length + i] = (byte)(data[i] ^ key[i % key.Length]);
+        var payload = Convert.ToBase64String(packed);
         return $$"""
 <!DOCTYPE html>
 <html lang="en">
@@ -113,7 +121,33 @@ public static class YouTubePlayerHtml
     </div>
   </div>
   <script>
-    const vid = atob("{{encoded}}");
+    (function () {
+      function block(e) {
+        var k = (e.key || "").toUpperCase();
+        if (e.key === "F12" || e.keyCode === 123) { e.preventDefault(); e.stopPropagation(); return false; }
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && ["I", "J", "C", "K"].indexOf(k) >= 0) { e.preventDefault(); e.stopPropagation(); return false; }
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && ["U", "S"].indexOf(k) >= 0) { e.preventDefault(); e.stopPropagation(); return false; }
+        if (e.metaKey && e.altKey && ["I", "J", "C"].indexOf(k) >= 0) { e.preventDefault(); e.stopPropagation(); return false; }
+      }
+      window.addEventListener("keydown", block, true);
+      document.addEventListener("contextmenu", function (e) { e.preventDefault(); }, true);
+      document.addEventListener("dragstart", function (e) { e.preventDefault(); }, true);
+      setInterval(function () {
+        if (Math.abs(window.outerWidth - window.innerWidth) > 200 || Math.abs(window.outerHeight - window.innerHeight) > 200) {
+          document.documentElement.innerHTML = "";
+        }
+      }, 1200);
+    })();
+    function _d(s) {
+      var b = Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); });
+      var n = b[0];
+      var k = b.subarray(1, 1 + n);
+      var d = b.subarray(1 + n);
+      var o = "";
+      for (var i = 0; i < d.length; i++) o += String.fromCharCode(d[i] ^ k[i % k.length]);
+      return o;
+    }
+    const vid = _d("{{payload}}");
     const playSvg = '<path d="M8 5v14l11-7z"/>';
     const pauseSvg = '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>';
     const qualityNames = {

@@ -5,12 +5,33 @@ export function getLessonPlayerSrc(otp?: string | null) {
   return `/api/video/play?t=${encodeURIComponent(otp)}`;
 }
 
+function isInspectShortcut(event: KeyboardEvent) {
+  const key = event.key.toUpperCase();
+  if (event.key === "F12") return true;
+  if (
+    (event.ctrlKey || event.metaKey) &&
+    event.shiftKey &&
+    ["I", "J", "C", "K"].includes(key)
+  ) {
+    return true;
+  }
+  if ((event.ctrlKey || event.metaKey) && !event.shiftKey && ["U"].includes(key)) {
+    return true;
+  }
+  if (event.metaKey && event.altKey && ["I", "J", "C"].includes(key)) {
+    return true;
+  }
+  return false;
+}
+
 export function LessonVideoPlayer({
   otp,
   className = "w-full h-full",
+  protect = false,
 }: {
   otp?: string | null;
   className?: string;
+  protect?: boolean;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -18,6 +39,12 @@ export function LessonVideoPlayer({
     if (!otp) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
+      if (protect && isInspectShortcut(event)) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
       const target = event.target as HTMLElement | null;
       const tag = target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) {
@@ -39,9 +66,9 @@ export function LessonVideoPlayer({
       }
     };
 
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [otp]);
+    window.addEventListener("keydown", onKeyDown, protect);
+    return () => window.removeEventListener("keydown", onKeyDown, protect);
+  }, [otp, protect]);
 
   if (!otp) return null;
 

@@ -230,7 +230,7 @@ const StudentLessonPage = () => {
         <div className="mb-8">
           <Card className="overflow-hidden bg-black border-0 shadow-2xl">
             <div className="w-full aspect-video">
-              <LessonVideoPlayer otp={data?.data.videoOTP?.otp} />
+              <LessonVideoPlayer otp={data?.data.videoOTP?.otp} protect />
             </div>
           </Card>
         </div>
