@@ -26,26 +26,35 @@ public static class YouTubePlayerHtml
       top: -96px !important;
       left: 0 !important;
       width: 100% !important;
-      height: calc(100% + 168px) !important;
+      height: calc(100% + 184px) !important;
     }
     .hit {
       position: absolute; inset: 0 0 56px 0; z-index: 3;
       display: flex; align-items: center; justify-content: center;
       background: #07080c; cursor: pointer;
     }
-    .hit.playing { background: transparent; }
-    .hit.playing .play { opacity: 0; transition: opacity .15s ease; }
-    .hit.playing:hover .play { opacity: 1; }
+    .wrap.has-started .hit { background: transparent; }
+    .play {
+      width: 84px; height: 84px; border-radius: 50%; border: 0; cursor: pointer; pointer-events: none;
+      background: #2563eb; color: white; display: grid; place-items: center;
+      opacity: 1; transition: opacity .2s ease;
+      box-shadow: 0 0 0 90px #07080c, 0 10px 30px rgba(37, 99, 235, 0.45);
+    }
+    .wrap.has-started .play {
+      box-shadow: 0 0 0 56px rgba(7, 8, 12, .94), 0 10px 30px rgba(37, 99, 235, 0.45);
+    }
+    .wrap.has-started.is-idle .play { opacity: 0; }
+    .play svg { width: 34px; height: 34px; }
+    .bottom-cap {
+      position: absolute; left: 0; right: 0; bottom: 56px; height: 48px; z-index: 5;
+      pointer-events: none; background: #080a10; opacity: 0;
+    }
+    .wrap:not(.is-playing) .bottom-cap { opacity: 1; }
     .logo-cap {
       position: absolute; right: 0; bottom: 56px; width: 96px; height: 32px; z-index: 5;
       pointer-events: none; background: #080a10;
     }
-    .play {
-      width: 84px; height: 84px; border-radius: 50%; border: 0; cursor: pointer; pointer-events: none;
-      background: #2563eb; color: white; display: grid; place-items: center;
-      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.45);
-    }
-    .play svg { width: 34px; height: 34px; }
+    .wrap:not(.is-playing) .logo-cap { bottom: 104px; }
     .bar {
       position: absolute; left: 0; right: 0; bottom: 0; height: 56px; z-index: 6;
       display: flex; align-items: center; gap: 8px; padding: 0 12px;
@@ -85,6 +94,7 @@ public static class YouTubePlayerHtml
         <svg id="centerIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       </button>
     </div>
+    <div class="bottom-cap"></div>
     <div class="logo-cap"></div>
     <div class="bar">
       <button id="play" type="button" aria-label="Play">▶</button>
@@ -111,7 +121,7 @@ public static class YouTubePlayerHtml
       large: "480p", medium: "360p", small: "240p", tiny: "144p",
       default: "Auto", auto: "Auto"
     };
-    let player, ready = false, timer, retries = 0, chosenQuality = "default";
+    let player, ready = false, timer, retries = 0, chosenQuality = "default", idleTimer;
     const wrap = document.getElementById("wrap");
     const hit = document.getElementById("hit");
     const playBtn = document.getElementById("play");
@@ -148,8 +158,17 @@ public static class YouTubePlayerHtml
       playBtn.textContent = playing ? "❚❚" : "▶";
       hit.classList.toggle("playing", playing);
       wrap.classList.toggle("is-playing", playing);
+      if (playing) wrap.classList.add("has-started");
       centerIcon.innerHTML = playing ? pauseSvg : playSvg;
       centerIcon.style.marginLeft = playing ? "0" : "4px";
+      bumpIdle();
+    }
+    function bumpIdle() {
+      wrap.classList.remove("is-idle");
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(function () {
+        if (wrap.classList.contains("has-started")) wrap.classList.add("is-idle");
+      }, 2000);
     }
     function showMessage(title, detail) {
       hit.classList.remove("playing");
@@ -176,7 +195,7 @@ public static class YouTubePlayerHtml
     function resizePlayer() {
       const stage = document.getElementById("stage");
       if (!player || !player.setSize || !stage) return;
-      player.setSize(stage.clientWidth, stage.clientHeight + 168);
+      player.setSize(stage.clientWidth, stage.clientHeight + 184);
     }
     function syncFullscreen() {
       wrap.classList.toggle("is-fs", !!document.fullscreenElement);
@@ -228,6 +247,7 @@ public static class YouTubePlayerHtml
       closeMenus();
     }
     function onKey(e) {
+      bumpIdle();
       const tag = (e.target && e.target.tagName) || "";
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if (e.code === "Space" || e.key === " ") {
@@ -244,6 +264,9 @@ public static class YouTubePlayerHtml
       }
     }
     window.addEventListener("keydown", onKey);
+    ["mousemove", "mousedown", "touchstart"].forEach(function (ev) {
+      wrap.addEventListener(ev, bumpIdle, { passive: true });
+    });
     window.addEventListener("message", (e) => {
       if (e.origin !== window.location.origin) return;
       if (e.data === "toggle") toggle();
@@ -255,7 +278,7 @@ public static class YouTubePlayerHtml
     window.onYouTubeIframeAPIReady = function () {
       player = new YT.Player("yt", {
         width: Math.max(document.getElementById("stage").clientWidth, 320),
-        height: Math.max(document.getElementById("stage").clientHeight + 168, 180),
+        height: Math.max(document.getElementById("stage").clientHeight + 184, 180),
         videoId: vid,
         playerVars: {
           autoplay: 0,
