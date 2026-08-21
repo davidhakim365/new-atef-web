@@ -17,8 +17,17 @@ public static class YouTubePlayerHtml
   <title>Lesson</title>
   <style>
     html, body { margin: 0; height: 100%; background: #0b0d12; overflow: hidden; font-family: Inter, system-ui, sans-serif; }
-    .wrap { position: relative; width: 100%; height: 100%; background: #000; user-select: none; }
-    #yt, #yt iframe { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
+    .wrap { position: relative; width: 100%; height: 100%; background: #000; user-select: none; overflow: hidden; }
+    .stage {
+      position: absolute; inset: 0 0 56px 0; overflow: hidden; background: #000;
+    }
+    #yt, .stage iframe {
+      position: absolute !important;
+      top: -96px !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: calc(100% + 96px) !important;
+    }
     .hit {
       position: absolute; inset: 0 0 56px 0; z-index: 3;
       display: flex; align-items: center; justify-content: center;
@@ -32,20 +41,12 @@ public static class YouTubePlayerHtml
       position: absolute; right: 0; bottom: 0; width: 150px; height: 64px;
       background: linear-gradient(225deg, transparent, #07080c 55%);
     }
-    .top-mask, .brand-mask {
-      position: absolute; z-index: 5; pointer-events: none; transition: opacity .2s ease;
-    }
-    .top-mask {
-      left: 0; right: 0; top: 0; height: 88px;
-      background: linear-gradient(180deg, rgba(0,0,0,.8), transparent);
-    }
     .brand-mask {
-      right: 0; bottom: 56px; width: 140px; height: 64px;
+      position: absolute; right: 0; bottom: 56px; width: 140px; height: 64px; z-index: 5;
+      pointer-events: none;
       background: linear-gradient(225deg, transparent 25%, rgba(0,0,0,.9) 80%);
     }
-    .wrap.is-playing .top-mask,
     .wrap.is-playing .brand-mask,
-    .wrap.is-fs .top-mask,
     .wrap.is-fs .brand-mask,
     .wrap.is-fs .hit:not(.playing)::after { opacity: 0; }
     .wrap.is-fs .hit:not(.playing) { background: rgba(0,0,0,.2); }
@@ -88,13 +89,12 @@ public static class YouTubePlayerHtml
 </head>
 <body oncontextmenu="return false">
   <div class="wrap" id="wrap" tabindex="0">
-    <div id="yt"></div>
+    <div class="stage" id="stage"><div id="yt"></div></div>
     <div class="hit" id="hit">
       <button class="play" id="centerBtn" type="button" aria-label="Play">
         <svg id="centerIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       </button>
     </div>
-    <div class="top-mask"></div>
     <div class="brand-mask"></div>
     <div class="bar">
       <button id="play" type="button" aria-label="Play">▶</button>
@@ -184,8 +184,9 @@ public static class YouTubePlayerHtml
       if (player && player.cueVideoById) player.cueVideoById(vid);
     }
     function resizePlayer() {
-      if (!player || !player.setSize) return;
-      player.setSize(wrap.clientWidth, wrap.clientHeight);
+      const stage = document.getElementById("stage");
+      if (!player || !player.setSize || !stage) return;
+      player.setSize(stage.clientWidth, stage.clientHeight + 96);
     }
     function syncFullscreen() {
       wrap.classList.toggle("is-fs", !!document.fullscreenElement);
@@ -263,8 +264,8 @@ public static class YouTubePlayerHtml
     window.addEventListener("resize", resizePlayer);
     window.onYouTubeIframeAPIReady = function () {
       player = new YT.Player("yt", {
-        width: Math.max(wrap.clientWidth, 320),
-        height: Math.max(wrap.clientHeight, 180),
+        width: Math.max(document.getElementById("stage").clientWidth, 320),
+        height: Math.max(document.getElementById("stage").clientHeight + 96, 180),
         videoId: vid,
         playerVars: {
           autoplay: 0,
