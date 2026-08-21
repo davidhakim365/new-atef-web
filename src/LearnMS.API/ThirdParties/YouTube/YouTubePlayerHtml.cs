@@ -13,12 +13,12 @@ public static class YouTubePlayerHtml
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="referrer" content="no-referrer" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>Lesson</title>
   <style>
     html, body { margin: 0; height: 100%; background: #0b0d12; overflow: hidden; font-family: Inter, system-ui, sans-serif; }
     .wrap { position: relative; width: 100%; height: 100%; background: #000; user-select: none; }
-    #yt { position: absolute; inset: 0; }
+    #yt, #yt iframe { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
     .shield, .cover { position: absolute; inset: 0 0 56px 0; z-index: 3; }
     .shield { cursor: default; }
     .cover {
@@ -45,7 +45,8 @@ public static class YouTubePlayerHtml
     .seek { flex: 1; }
     .time { font-size: 12px; min-width: 86px; opacity: 0.8; }
     .hidden { display: none; }
-    .err { color: #fca5a5; text-align: center; padding: 24px; }
+    .err { color: #e5e7eb; text-align: center; padding: 24px; max-width: 360px; line-height: 1.45; }
+    .err small { display: block; margin-top: 8px; color: #9ca3af; }
   </style>
 </head>
 <body oncontextmenu="return false">
@@ -67,14 +68,17 @@ public static class YouTubePlayerHtml
   </div>
   <script>
     const vid = atob("{{encoded}}");
-    let player, ready = false, timer;
+    let player, ready = false, timer, retries = 0;
     const cover = document.getElementById("cover");
     const playBtn = document.getElementById("play");
     const seek = document.getElementById("seek");
     const timeEl = document.getElementById("time");
     const muteBtn = document.getElementById("mute");
+    const playBig = document.getElementById("playBig");
 
-    document.addEventListener("keydown", (e) => e.preventDefault());
+    document.addEventListener("keydown", (e) => {
+      if (e.key === " " || e.key === "ArrowLeft" || e.key === "ArrowRight") e.preventDefault();
+    });
     document.addEventListener("selectstart", (e) => e.preventDefault());
 
     function fmt(s) {
@@ -94,18 +98,30 @@ public static class YouTubePlayerHtml
       playBtn.textContent = isPlaying ? "❚❚" : "▶";
       cover.classList.toggle("hidden", isPlaying);
     }
+    function showPlay() {
+      cover.innerHTML = "";
+      cover.appendChild(playBig);
+      cover.classList.remove("hidden");
+    }
+    function showMessage(title, detail) {
+      cover.innerHTML = '<p class="err">' + title + (detail ? "<small>" + detail + "</small>" : "") + "</p>";
+      cover.classList.remove("hidden");
+    }
     function toggle() {
-      if (!ready) return;
+      if (!ready || !player) return;
       const state = player.getPlayerState();
       if (state === 1) player.pauseVideo();
       else player.playVideo();
     }
+    function loadVideo() {
+      if (player && player.cueVideoById) player.cueVideoById(vid);
+    }
     window.onYouTubeIframeAPIReady = function () {
+      const wrap = document.getElementById("wrap");
       player = new YT.Player("yt", {
-        host: "https://www.youtube-nocookie.com",
+        width: Math.max(wrap.clientWidth, 320),
+        height: Math.max(wrap.clientHeight, 180),
         videoId: vid,
-        width: "100%",
-        height: "100%",
         playerVars: {
           autoplay: 0,
           controls: 0,
@@ -114,28 +130,36 @@ public static class YouTubePlayerHtml
           modestbranding: 1,
           rel: 0,
           iv_load_policy: 3,
-          cc_load_policy: 0,
           playsinline: 1,
-          origin: window.location.origin,
-          widget_referrer: window.location.origin
+          enablejsapi: 1,
+          origin: window.location.origin
         },
         events: {
           onReady: function () {
             ready = true;
+            retries = 0;
             timer = setInterval(sync, 250);
+            showPlay();
           },
           onStateChange: function (e) {
+            if (e.data === 1 || e.data === 3) retries = 0;
             setPlaying(e.data === 1);
-            if (e.data === 0) setPlaying(false);
+            if (e.data === 0 || e.data === 2 || e.data === 5) setPlaying(false);
           },
-          onError: function () {
-            cover.innerHTML = '<p class="err">Video is still processing. Try again in a few minutes.</p>';
-            cover.classList.remove("hidden");
+          onError: function (e) {
+            const code = e && e.data;
+            if ((code === 100 || code === 101 || code === 150) && retries < 15) {
+              retries += 1;
+              showMessage("Preparing video…", "YouTube is still encoding this file. Retrying automatically.");
+              setTimeout(loadVideo, 8000);
+              return;
+            }
+            showMessage("This video cannot be played yet.", "Wait a few minutes, refresh the page, or upload the file again.");
           }
         }
       });
     };
-    document.getElementById("playBig").onclick = toggle;
+    playBig.onclick = toggle;
     playBtn.onclick = toggle;
     seek.addEventListener("mousedown", () => seek._drag = true);
     seek.addEventListener("touchstart", () => seek._drag = true);

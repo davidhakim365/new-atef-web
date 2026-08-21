@@ -63,7 +63,7 @@ public static class VideoUploadEndpoints
             http.Response.Headers.Append("Content-Security-Policy", "frame-ancestors 'self'");
             http.Response.Headers.Append("X-Frame-Options", "SAMEORIGIN");
             http.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-            http.Response.Headers.Append("Referrer-Policy", "no-referrer");
+            http.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
             http.Response.Headers.Append("Cache-Control", "no-store");
 
             if (!youtube.TryResolvePlaybackToken(t, out var videoId))

@@ -19,7 +19,7 @@ export function LessonVideoPlayer({
       src={getLessonPlayerSrc(otp)}
       allowFullScreen
       allow="fullscreen; encrypted-media"
-      referrerPolicy="no-referrer"
+      referrerPolicy="strict-origin-when-cross-origin"
       className={className}
       onContextMenu={(event) => event.preventDefault()}
     />
