@@ -1,0 +1,28 @@
+/* Hide animable elements by default */
+svg#freepik_stories-science:not(.animated) .animable {
+  opacity: 0;
+}
+
+/* Animate all animable elements */
+svg#freepik_stories-science.animated .animable {
+  animation: fadeInUp 1s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+/* You can customize animation delay per element if you want */
+.animable:nth-of-type(1) { --delay: 0s; }
+.animable:nth-of-type(2) { --delay: 0.2s; }
+.animable:nth-of-type(3) { --delay: 0.4s; }
+/* ...continue if you want to stagger animations */
+
+/* Simple fade+up animation */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
