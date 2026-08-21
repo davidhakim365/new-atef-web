@@ -26,30 +26,20 @@ public static class YouTubePlayerHtml
       top: -96px !important;
       left: 0 !important;
       width: 100% !important;
-      height: calc(100% + 96px) !important;
+      height: calc(100% + 168px) !important;
     }
     .hit {
       position: absolute; inset: 0 0 56px 0; z-index: 3;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,.35); cursor: pointer;
+      background: #07080c; cursor: pointer;
     }
     .hit.playing { background: transparent; }
     .hit.playing .play { opacity: 0; transition: opacity .15s ease; }
     .hit.playing:hover .play { opacity: 1; }
-    .hit:not(.playing)::after {
-      content: "";
-      position: absolute; right: 0; bottom: 0; width: 150px; height: 64px;
-      background: linear-gradient(225deg, transparent, #07080c 55%);
+    .logo-cap {
+      position: absolute; right: 0; bottom: 56px; width: 96px; height: 32px; z-index: 5;
+      pointer-events: none; background: #080a10;
     }
-    .brand-mask {
-      position: absolute; right: 0; bottom: 56px; width: 140px; height: 64px; z-index: 5;
-      pointer-events: none;
-      background: linear-gradient(225deg, transparent 25%, rgba(0,0,0,.9) 80%);
-    }
-    .wrap.is-playing .brand-mask,
-    .wrap.is-fs .brand-mask,
-    .wrap.is-fs .hit:not(.playing)::after { opacity: 0; }
-    .wrap.is-fs .hit:not(.playing) { background: rgba(0,0,0,.2); }
     .play {
       width: 84px; height: 84px; border-radius: 50%; border: 0; cursor: pointer; pointer-events: none;
       background: #2563eb; color: white; display: grid; place-items: center;
@@ -95,7 +85,7 @@ public static class YouTubePlayerHtml
         <svg id="centerIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       </button>
     </div>
-    <div class="brand-mask"></div>
+    <div class="logo-cap"></div>
     <div class="bar">
       <button id="play" type="button" aria-label="Play">▶</button>
       <input id="seek" class="seek" type="range" min="0" max="1000" value="0" />
@@ -186,7 +176,7 @@ public static class YouTubePlayerHtml
     function resizePlayer() {
       const stage = document.getElementById("stage");
       if (!player || !player.setSize || !stage) return;
-      player.setSize(stage.clientWidth, stage.clientHeight + 96);
+      player.setSize(stage.clientWidth, stage.clientHeight + 168);
     }
     function syncFullscreen() {
       wrap.classList.toggle("is-fs", !!document.fullscreenElement);
@@ -265,7 +255,7 @@ public static class YouTubePlayerHtml
     window.onYouTubeIframeAPIReady = function () {
       player = new YT.Player("yt", {
         width: Math.max(document.getElementById("stage").clientWidth, 320),
-        height: Math.max(document.getElementById("stage").clientHeight + 96, 180),
+        height: Math.max(document.getElementById("stage").clientHeight + 168, 180),
         videoId: vid,
         playerVars: {
           autoplay: 0,
