@@ -132,11 +132,6 @@ public static class YouTubePlayerHtml
       window.addEventListener("keydown", block, true);
       document.addEventListener("contextmenu", function (e) { e.preventDefault(); }, true);
       document.addEventListener("dragstart", function (e) { e.preventDefault(); }, true);
-      setInterval(function () {
-        if (Math.abs(window.outerWidth - window.innerWidth) > 200 || Math.abs(window.outerHeight - window.innerHeight) > 200) {
-          document.documentElement.innerHTML = "";
-        }
-      }, 1200);
     })();
     function _d(s) {
       var b = Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); });
