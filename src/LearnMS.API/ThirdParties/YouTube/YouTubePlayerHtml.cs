@@ -19,22 +19,34 @@ public static class YouTubePlayerHtml
     html, body { margin: 0; height: 100%; background: #0b0d12; overflow: hidden; font-family: Inter, system-ui, sans-serif; }
     .wrap { position: relative; width: 100%; height: 100%; background: #000; user-select: none; }
     #yt, #yt iframe { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
-    .shield, .cover { position: absolute; inset: 0 0 56px 0; z-index: 3; }
-    .shield { cursor: default; }
-    .cover {
+    .hit {
+      position: absolute; inset: 0 0 56px 0; z-index: 3;
       display: flex; align-items: center; justify-content: center;
-      background: radial-gradient(circle at center, #151821 0%, #07080c 70%);
+      background: #07080c; cursor: pointer;
+    }
+    .hit.playing { background: transparent; }
+    .hit.playing .play { opacity: 0; transition: opacity .15s ease; }
+    .hit.playing:hover .play { opacity: 1; }
+    .top-mask {
+      position: absolute; left: 0; right: 0; top: 0; height: 110px; z-index: 5;
+      pointer-events: none;
+      background: linear-gradient(180deg, #000 0%, rgba(0,0,0,.85) 55%, transparent 100%);
+    }
+    .brand-mask {
+      position: absolute; right: 0; bottom: 56px; width: 160px; height: 72px; z-index: 5;
+      pointer-events: none;
+      background: linear-gradient(225deg, transparent 20%, rgba(0,0,0,.92) 70%);
     }
     .play {
-      width: 84px; height: 84px; border-radius: 50%; border: 0; cursor: pointer;
+      width: 84px; height: 84px; border-radius: 50%; border: 0; cursor: pointer; pointer-events: none;
       background: #2563eb; color: white; display: grid; place-items: center;
       box-shadow: 0 10px 30px rgba(37, 99, 235, 0.45);
     }
-    .play svg { width: 34px; height: 34px; margin-left: 4px; }
+    .play svg { width: 34px; height: 34px; }
     .bar {
-      position: absolute; left: 0; right: 0; bottom: 0; height: 56px; z-index: 4;
+      position: absolute; left: 0; right: 0; bottom: 0; height: 56px; z-index: 6;
       display: flex; align-items: center; gap: 10px; padding: 0 14px;
-      background: linear-gradient(180deg, rgba(8,10,16,0.2), #080a10 55%);
+      background: #080a10;
       color: #e5e7eb;
     }
     .bar button, .bar input { accent-color: #3b82f6; }
@@ -44,20 +56,20 @@ public static class YouTubePlayerHtml
     }
     .seek { flex: 1; }
     .time { font-size: 12px; min-width: 86px; opacity: 0.8; }
-    .hidden { display: none; }
-    .err { color: #e5e7eb; text-align: center; padding: 24px; max-width: 360px; line-height: 1.45; }
+    .err { color: #e5e7eb; text-align: center; padding: 24px; max-width: 360px; line-height: 1.45; pointer-events: none; }
     .err small { display: block; margin-top: 8px; color: #9ca3af; }
   </style>
 </head>
 <body oncontextmenu="return false">
-  <div class="wrap" id="wrap">
+  <div class="wrap" id="wrap" tabindex="0">
     <div id="yt"></div>
-    <div class="shield" id="shield"></div>
-    <div class="cover" id="cover">
-      <button class="play" id="playBig" type="button" aria-label="Play">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    <div class="hit" id="hit">
+      <button class="play" id="centerBtn" type="button" aria-label="Play">
+        <svg id="centerIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       </button>
     </div>
+    <div class="top-mask"></div>
+    <div class="brand-mask"></div>
     <div class="bar">
       <button id="play" type="button" aria-label="Play">▶</button>
       <input id="seek" class="seek" type="range" min="0" max="1000" value="0" />
@@ -68,17 +80,16 @@ public static class YouTubePlayerHtml
   </div>
   <script>
     const vid = atob("{{encoded}}");
+    const playSvg = '<path d="M8 5v14l11-7z"/>';
+    const pauseSvg = '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>';
     let player, ready = false, timer, retries = 0;
-    const cover = document.getElementById("cover");
+    const hit = document.getElementById("hit");
     const playBtn = document.getElementById("play");
     const seek = document.getElementById("seek");
     const timeEl = document.getElementById("time");
     const muteBtn = document.getElementById("mute");
-    const playBig = document.getElementById("playBig");
+    const centerIcon = document.getElementById("centerIcon");
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === " " || e.key === "ArrowLeft" || e.key === "ArrowRight") e.preventDefault();
-    });
     document.addEventListener("selectstart", (e) => e.preventDefault());
 
     function fmt(s) {
@@ -94,28 +105,54 @@ public static class YouTubePlayerHtml
       if (!seek._drag) seek.value = d ? Math.round((c / d) * 1000) : 0;
       timeEl.textContent = fmt(c) + " / " + fmt(d);
     }
-    function setPlaying(isPlaying) {
-      playBtn.textContent = isPlaying ? "❚❚" : "▶";
-      cover.classList.toggle("hidden", isPlaying);
+    function isPlaying() {
+      return !!(player && player.getPlayerState && player.getPlayerState() === 1);
     }
-    function showPlay() {
-      cover.innerHTML = "";
-      cover.appendChild(playBig);
-      cover.classList.remove("hidden");
+    function setPlaying(playing) {
+      playBtn.textContent = playing ? "❚❚" : "▶";
+      hit.classList.toggle("playing", playing);
+      centerIcon.setAttribute("viewBox", "0 0 24 24");
+      centerIcon.innerHTML = playing ? pauseSvg : playSvg;
+      if (playing) centerIcon.style.marginLeft = "0";
+      else centerIcon.style.marginLeft = "4px";
     }
     function showMessage(title, detail) {
-      cover.innerHTML = '<p class="err">' + title + (detail ? "<small>" + detail + "</small>" : "") + "</p>";
-      cover.classList.remove("hidden");
+      hit.classList.remove("playing");
+      hit.innerHTML = '<p class="err">' + title + (detail ? "<small>" + detail + "</small>" : "") + "</p>";
     }
     function toggle() {
       if (!ready || !player) return;
-      const state = player.getPlayerState();
-      if (state === 1) player.pauseVideo();
+      if (isPlaying()) player.pauseVideo();
       else player.playVideo();
+    }
+    function seekBy(seconds) {
+      if (!ready || !player || !player.getCurrentTime) return;
+      player.seekTo(Math.max(0, (player.getCurrentTime() || 0) + seconds), true);
     }
     function loadVideo() {
       if (player && player.cueVideoById) player.cueVideoById(vid);
     }
+    function onKey(e) {
+      const tag = (e.target && e.target.tagName) || "";
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault();
+        toggle();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        seekBy(5);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        seekBy(-5);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("message", (e) => {
+      if (e.origin !== window.location.origin) return;
+      if (e.data === "toggle") toggle();
+      if (e.data === "seek-forward") seekBy(5);
+      if (e.data === "seek-back") seekBy(-5);
+    });
     window.onYouTubeIframeAPIReady = function () {
       const wrap = document.getElementById("wrap");
       player = new YT.Player("yt", {
@@ -139,12 +176,12 @@ public static class YouTubePlayerHtml
             ready = true;
             retries = 0;
             timer = setInterval(sync, 250);
-            showPlay();
+            wrap.focus();
+            setPlaying(false);
           },
           onStateChange: function (e) {
             if (e.data === 1 || e.data === 3) retries = 0;
             setPlaying(e.data === 1);
-            if (e.data === 0 || e.data === 2 || e.data === 5) setPlaying(false);
           },
           onError: function (e) {
             const code = e && e.data;
@@ -159,22 +196,24 @@ public static class YouTubePlayerHtml
         }
       });
     };
-    playBig.onclick = toggle;
+    hit.addEventListener("click", toggle);
     playBtn.onclick = toggle;
     seek.addEventListener("mousedown", () => seek._drag = true);
     seek.addEventListener("touchstart", () => seek._drag = true);
-    seek.addEventListener("change", () => {
+    seek.addEventListener("input", () => {
       if (!ready) return;
       const d = player.getDuration() || 0;
       player.seekTo((Number(seek.value) / 1000) * d, true);
-      seek._drag = false;
     });
-    muteBtn.onclick = () => {
+    seek.addEventListener("change", () => { seek._drag = false; });
+    muteBtn.onclick = (e) => {
+      e.stopPropagation();
       if (!ready) return;
       if (player.isMuted()) { player.unMute(); muteBtn.textContent = "🔊"; }
       else { player.mute(); muteBtn.textContent = "🔇"; }
     };
-    document.getElementById("fs").onclick = () => {
+    document.getElementById("fs").onclick = (e) => {
+      e.stopPropagation();
       const el = document.getElementById("wrap");
       if (!document.fullscreenElement) el.requestFullscreen?.();
       else document.exitFullscreen?.();
