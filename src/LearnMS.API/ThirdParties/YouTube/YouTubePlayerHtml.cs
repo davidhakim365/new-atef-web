@@ -92,6 +92,8 @@ public static class YouTubePlayerHtml
     .menu button.active, .menu button:hover { background: #2563eb; }
     .err { color: #e5e7eb; text-align: center; padding: 24px; max-width: 360px; line-height: 1.45; pointer-events: none; }
     .err small { display: block; margin-top: 8px; color: #9ca3af; }
+    [id*="IDM"], [id*="idm-"], [class*="IDM"], [class*="idm-"],
+    #idm-companion, .idm-video-panel, .idm-download { display: none !important; visibility: hidden !important; }
   </style>
 </head>
 <body oncontextmenu="return false">
@@ -132,6 +134,22 @@ public static class YouTubePlayerHtml
       window.addEventListener("keydown", block, true);
       document.addEventListener("contextmenu", function (e) { e.preventDefault(); }, true);
       document.addEventListener("dragstart", function (e) { e.preventDefault(); }, true);
+      var grab = /idm|internet.?download.?manager|idmcompanion/i;
+      function isGrabber(el) {
+        if (!el || !el.getAttribute) return false;
+        var hay = ((el.id || "") + " " + (el.className || "") + " " + (el.getAttribute("src") || "")).toLowerCase();
+        return grab.test(hay);
+      }
+      function stripGrabbers() {
+        var nodes = document.querySelectorAll('[id*="IDM"], [id*="idm"], [class*="IDM"], [class*="idm"], [src*="idm"]');
+        var found = false;
+        nodes.forEach(function (el) {
+          if (isGrabber(el)) { found = true; el.remove(); }
+        });
+        return found;
+      }
+      stripGrabbers();
+      new MutationObserver(function () { stripGrabbers(); }).observe(document.documentElement, { childList: true, subtree: true });
     })();
     function _d(s) {
       var b = Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); });

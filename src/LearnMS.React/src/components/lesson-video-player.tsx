@@ -36,6 +36,27 @@ export function LessonVideoPlayer({
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
+    if (!protect) return;
+
+    const grab = /idm|internet.?download.?manager|idmcompanion/i;
+    const hide = (node: Element) => {
+      const hay = `${node.id} ${node.className} ${node.getAttribute("src") || ""}`;
+      if (grab.test(hay)) {
+        node.remove();
+      }
+    };
+    const scan = () => {
+      document
+        .querySelectorAll('[id*="IDM"], [id*="idm"], [class*="IDM"], [class*="idm"], [src*="idm"]')
+        .forEach(hide);
+    };
+    scan();
+    const observer = new MutationObserver(scan);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [protect]);
+
+  useEffect(() => {
     if (!otp) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
