@@ -144,7 +144,7 @@ public sealed class YouTubeService
         );
     }
 
-    public async Task CompleteOAuthAsync(string code, string redirectUri, CancellationToken cancellationToken = default)
+    public async Task<string> CompleteOAuthAsync(string code, string redirectUri, CancellationToken cancellationToken = default)
     {
         var client = _httpClientFactory.CreateClient("YouTubeApi");
         using var content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -179,6 +179,8 @@ public sealed class YouTubeService
                 : 3500;
             _accessTokenExpiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresIn - 60);
         }
+
+        return refreshToken!;
     }
 
     public async Task<string> UploadVideoAsync(Stream fs, string title, string? existingVideoId = null)

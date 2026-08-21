@@ -52,9 +52,16 @@ public sealed class YouTubeController : ControllerBase
             );
         }
 
-        await _youTubeService.CompleteOAuthAsync(code, CallbackUrl());
+        var refreshToken = await _youTubeService.CompleteOAuthAsync(code, CallbackUrl());
+        var safeToken = System.Net.WebUtility.HtmlEncode(refreshToken);
         return Content(
-            "<html><body style='font-family:system-ui;padding:40px'><h2>YouTube connected.</h2><p>You can close this tab and go back to the dashboard.</p></body></html>",
+            $"""
+            <html><body style="font-family:system-ui;padding:40px;max-width:720px">
+              <h2>YouTube connected</h2>
+              <p>Copy this refresh token into Render as <code>YouTube__RefreshToken</code>, then save and redeploy. Without it, the connection is lost when the server restarts.</p>
+              <textarea readonly style="width:100%;height:120px;font-family:monospace">{safeToken}</textarea>
+            </body></html>
+            """,
             "text/html"
         );
     }
