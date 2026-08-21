@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using LearnMS.API.Entities;
 using LearnMS.API.ThirdParties;
-using LearnMS.API.ThirdParties.VdoCipher;
 
 namespace LearnMS.API.Features.Courses.Contracts;
 

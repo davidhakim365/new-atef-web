@@ -8,7 +8,7 @@ using LearnMS.API.Features.Courses.Contracts;
 using LearnMS.API.Features.Profile;
 using LearnMS.API.Features.Students;
 using LearnMS.API.ThirdParties;
-using LearnMS.API.ThirdParties.VdoCipher;
+using LearnMS.API.ThirdParties.YouTube;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -17,19 +17,19 @@ namespace LearnMS.API.Features.Courses;
 public sealed class CoursesService : ICoursesService
 {
     private readonly AppDbContext _context;
-    private readonly VdoService _vdoService;
+    private readonly YouTubeService _youTubeService;
     private readonly IOptions<StorageConfig> _storageCfg;
     private readonly StorageService _storageService;
 
     public CoursesService(
         AppDbContext contextContext,
-        VdoService vdoService,
+        YouTubeService youTubeService,
         IOptions<StorageConfig> storageCfg,
         StorageService storageService
     )
     {
         _context = contextContext;
-        _vdoService = vdoService;
+        _youTubeService = youTubeService;
         _storageCfg = storageCfg;
         _storageService = storageService;
     }
@@ -160,7 +160,7 @@ public sealed class CoursesService : ICoursesService
 
         if (!string.IsNullOrWhiteSpace(command.VideoId))
         {
-            lesson.VideoId = command.VideoId;
+            lesson.VideoId = YouTubeService.TryParseVideoId(command.VideoId) ?? command.VideoId;
         }
 
         _context.Lessons.Update(lesson);
@@ -336,9 +336,23 @@ public sealed class CoursesService : ICoursesService
                     x.Id == command.LectureId && x.CourseId == command.CourseId
                 ) ?? throw new ApiException(LecturesErrors.NotFound);
 
+        var existingVideoId = lecture.Lessons.FirstOrDefault(x => x.Id == command.Id)?.VideoId;
+
         lecture.RemoveItem(command.Id);
         _context.Update(lecture);
         await _context.SaveChangesAsync();
+
+        if (YouTubeService.IsYouTubeVideoId(existingVideoId))
+        {
+            try
+            {
+                await _youTubeService.DeleteVideoAsync(existingVideoId!);
+            }
+            catch
+            {
+                // Lesson is already removed even if the remote video cannot be deleted.
+            }
+        }
     }
 
     public async Task ExecuteAsync(RenewLessonExpirationCommand command)
@@ -452,7 +466,11 @@ public sealed class CoursesService : ICoursesService
                     && x.Lecture.CourseId == command.CourseId
                 ) ?? throw new ApiException(LessonsErrors.NotFound);
 
-        var videoId = await _vdoService.UploadVideoAsync(command.FS, lesson.VideoId);
+        var videoId = await _youTubeService.UploadVideoAsync(
+            command.FS,
+            $"Lesson {lesson.Id:N}",
+            lesson.VideoId
+        );
         lesson.VideoId = videoId;
 
         _context.Update(lesson);
@@ -1501,14 +1519,14 @@ public sealed class CoursesService : ICoursesService
             Title = lesson.Title,
             Description = lesson.Description,
             VideoOTP =
-                lesson.ExpirationHours == 0 || attendance?.ExpirationDate > DateTime.UtcNow
-                    ? await _vdoService.GetVideoOTPAsync(lesson.VideoId!)
+                (lesson.ExpirationHours == 0 || attendance?.ExpirationDate > DateTime.UtcNow)
+                && YouTubeService.IsYouTubeVideoId(lesson.VideoId)
+                    ? _youTubeService.CreatePlaybackOtp(lesson.VideoId!)
                     : null,
             ExpirationHours = lesson.ExpirationHours,
             ExpiresAt = attendance?.ExpirationDate,
             RenewalPrice = lesson.RenewalPrice
         };
-        ;
     }
 
     public async Task<GetDashboardLessonResult> QueryAsync(GetLessonQuery query)
@@ -1526,12 +1544,12 @@ public sealed class CoursesService : ICoursesService
         {
             Description = result.Description,
             ExpirationHours = result.ExpirationHours,
-            VideoId = result.VideoId,
+            VideoId = null,
             Id = result.Id,
             RenewalPrice = result.RenewalPrice,
             Title = result.Title,
-            VideoOTP = !string.IsNullOrEmpty(result.VideoId)
-                ? await _vdoService.GetVideoOTPAsync(result.VideoId)
+            VideoOTP = YouTubeService.IsYouTubeVideoId(result.VideoId)
+                ? _youTubeService.CreatePlaybackOtp(result.VideoId!)
                 : null
         };
     }

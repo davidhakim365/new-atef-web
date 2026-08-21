@@ -9,7 +9,7 @@ using LearnMS.API.Middlewares;
 using LearnMS.API.Security;
 using LearnMS.API.Security.JwtBearer;
 using LearnMS.API.Security.PasswordHasher;
-using LearnMS.API.ThirdParties.VdoCipher;
+using LearnMS.API.ThirdParties.YouTube;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +28,7 @@ public static class ApplicationDependencyInjection
         RegisterDatabase(services, cfg);
         RegisterAuth(services, cfg);
         RegisterCommonServices(services, cfg);
-        services.RegisterVdoService(cfg);
+        services.RegisterYouTubeService(cfg);
         services.RegisterFeaturesServices(cfg);
         RegisterSpaClient(services);
         services.AddStorageService(cfg);

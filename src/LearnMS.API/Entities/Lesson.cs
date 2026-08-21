@@ -11,7 +11,7 @@ public class Lesson : IOrdered
     public required string Description { get; set; } =".";
     public required decimal RenewalPrice { get; set; } =0;
     public required int ExpirationHours { get; set; } = 0;
-    public string? VideoId { get; set; } = "30b46673c9e84d2aaa3447d6934ef2e8";
+    public string? VideoId { get; set; }
 
     [JsonIgnore]
     public Guid LectureId { get; set; }

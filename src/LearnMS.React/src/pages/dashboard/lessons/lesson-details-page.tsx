@@ -4,7 +4,9 @@ import
     useDeleteLessonMutation,
     useUpdateLessonMutation
   } from "@/api/lessons-api";
+import { api, ApiResponse } from "@/api";
 import Confirmation from "@/components/confirmation";
+import { LessonVideoPlayer } from "@/components/lesson-video-player";
 import Loading from "@/components/loading/loading";
 import { Button } from "@/components/ui/button";
 import
@@ -17,20 +19,22 @@ import
     FormMessage,
   } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
-import { useGetLesson } from "@/generated/api";
+import { getGetLessonQueryKey, useGetLesson, useGetProfile } from "@/generated/api";
 import { GetDashboardLessonResult } from "@/generated/model";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Uppy from "@uppy/core";
 import Dashboard from "@uppy/dashboard";
-import DropTarget from "@uppy/drop-target";
 import Tus from "@uppy/tus";
 import { ListCollapse, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
+import "@uppy/core/dist/style.min.css";
+import "@uppy/dashboard/dist/style.min.css";
 
 const LessonDetailsPage = () => {
   const { courseId, lectureId, lessonId } = useParams();
@@ -108,7 +112,6 @@ const LessonDetailsPage = () => {
 function LessonDetailsContent({
   id,
   description,
-  videoId,
   title,
   expirationHours,
   renewalPrice,
@@ -123,10 +126,9 @@ function LessonDetailsContent({
       description,
       title,
       expirationHours,
-      videoId: videoId ?? "",
       renewalPrice,
     },
-    values: { description, title, expirationHours, renewalPrice, videoId: videoId ?? "" },
+    values: { description, title, expirationHours, renewalPrice },
   });
 
   const onSubmit = (data: UpdateLessonRequest) => {
@@ -222,19 +224,6 @@ function LessonDetailsContent({
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name='videoId'
-            render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-blue-500'>Video Id</FormLabel>
-                <FormControl>
-                  <Input type='string' className='text-blue-500' {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </form>
       </Form>
     </div>
@@ -253,71 +242,136 @@ function LessonVideo({
   lesson:  GetDashboardLessonResult;
 }) {
   const qc = useQueryClient();
+  const { data: profile } = useGetProfile();
+  const [progress, setProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
 
-  const [uppy] = useState(
-    new Uppy({
+  const { data: youtubeStatus } = useQuery({
+    queryKey: ["youtube-status"],
+    queryFn: () =>
+      api.get<ApiResponse<{ connected: boolean }>>("/api/youtube/status").then((res) => res.data),
+  });
+
+  useEffect(() => {
+    const instance = new Uppy({
+      autoProceed: true,
       restrictions: {
         allowedFileTypes: ["video/*"],
         minNumberOfFiles: 1,
+        maxNumberOfFiles: 1,
       },
     }).use(Tus, {
       endpoint: `/api/courses/${courseId}/lectures/${lectureId}/lessons/${lessonId}/video`,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-      onShouldRetry(_) {
+      onShouldRetry() {
         return false;
       },
-      onAfterResponse(_, res) {
-        if (res.getStatus() === 204) {
-          toast({
-            title: "Video uploaded successfully",
-          });
-          qc.invalidateQueries({
-            queryKey: ["lesson", { id: lessonId }],
-          });
-        }
-      },
-    })
-  );
+    }).use(Dashboard, {
+      inline: true,
+      target: "#lesson-video-uploader",
+      height: 260,
+      proudlyDisplayPoweredByUppy: false,
+      showProgressDetails: true,
+      hideCancelButton: false,
+      note: "Drop a lesson video here. Keep this page open until upload finishes.",
+    });
 
-  useEffect(() => {
-    uppy
-      .use(DropTarget, {
-        target: "#lesson-video-drop-zone",
-        onDrop: () => {
-          const plugin: any = uppy.getPlugin("Dashboard");
-          plugin.openModal();
-        },
-      })
-      .use(Dashboard, {
-        inline: false,
-        target: "#lesson-video-drop-zone",
-        height: 200,
+    const onProgress = (
+      _file: unknown,
+      fileProgress: { bytesUploaded: number; bytesTotal: number | null }
+    ) => {
+      if (!fileProgress.bytesTotal) return;
+      setProgress(
+        Math.round((fileProgress.bytesUploaded / fileProgress.bytesTotal) * 100)
+      );
+    };
+    const onUpload = () => {
+      setUploading(true);
+      setProgress(0);
+    };
+    const onComplete = (result: { failed: unknown[] }) => {
+      setUploading(false);
+      if (result.failed.length) return;
+      setProgress(100);
+      toast({
+        title: "Video uploaded successfully",
+        description:
+          "Playback may take a few minutes while the video finishes processing.",
       });
-  }, []);
+      qc.invalidateQueries({
+        queryKey: getGetLessonQueryKey(courseId, lectureId, lessonId),
+      });
+      qc.invalidateQueries({
+        queryKey: ["lesson", { id: lessonId }],
+      });
+    };
+    const onError = () => {
+      setUploading(false);
+      toast({
+        title: "Video upload failed",
+        description: "Check that video hosting is connected, then try again.",
+        variant: "destructive",
+      });
+    };
 
+    instance.on("upload", onUpload);
+    instance.on("upload-progress", onProgress);
+    instance.on("complete", onComplete);
+    instance.on("error", onError);
+    instance.on("upload-error", onError);
+
+    return () => {
+      instance.close();
+    };
+  }, [courseId, lectureId, lessonId, qc]);
+
+  const connectYouTube = async () => {
+    const res = await api.get<ApiResponse<string>>("/api/youtube/connect");
+    if (res.data.data) {
+      window.location.href = res.data.data;
+    }
+  };
 
   return (
-    <div className='flex flex-col gap-4 p-4' id='lesson-video-drop-zone'>
+    <div className='flex flex-col gap-4 p-4'>
       <div className='flex items-center justify-between text-xl'>
         <div className='flex items-center gap-2'>
           <ListCollapse className='text-primary bg-blue-200 rounded-[50%] w-10 h-10 p-1' />
           Lesson Content
         </div>
+        {profile?.data?.role === "Teacher" && (
+          <Button
+            type='button'
+            variant={youtubeStatus?.data?.connected ? "outline" : "default"}
+            onClick={connectYouTube}>
+            {youtubeStatus?.data?.connected ? "Reconnect hosting" : "Connect video hosting"}
+          </Button>
+        )}
       </div>
 
-      
+      {youtubeStatus?.data && youtubeStatus.data.connected === false && (
+        <p className='text-sm text-amber-700'>
+          Connect video hosting once, then you can upload lesson videos from this page.
+        </p>
+      )}
 
-      {lesson.videoOTP?.playbackInfo && (
-        <div className='w-full rounded-xl aspect-video overflow-clip'>
-          <iframe
-            src={`https://player.vdocipher.com/v2/?otp=${
-              lesson.videoOTP!.otp
-            }&playbackInfo=${lesson.videoOTP.playbackInfo}`}
-            allowFullScreen
-            className='object-cover w-full h-full'
-            allow='encrypted-media'></iframe>
+      <div id='lesson-video-uploader' />
+
+      {uploading && (
+        <div className='space-y-2'>
+          <div className='flex justify-between text-sm text-muted-foreground'>
+            <span>Uploading video</span>
+            <span>{progress}%</span>
+          </div>
+          <Progress value={progress} />
+        </div>
+      )}
+
+      {lesson.videoOTP?.otp && (
+        <div className='w-full rounded-xl aspect-video overflow-clip bg-black'>
+          <LessonVideoPlayer otp={lesson.videoOTP.otp} />
         </div>
       )}
     </div>

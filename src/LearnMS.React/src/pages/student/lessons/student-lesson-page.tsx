@@ -7,6 +7,7 @@ import Confirmation from "@/components/confirmation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { LessonVideoPlayer } from "@/components/lesson-video-player";
 import {
   ArrowLeft,
   Coins,
@@ -229,12 +230,7 @@ const StudentLessonPage = () => {
         <div className="mb-8">
           <Card className="overflow-hidden bg-black border-0 shadow-2xl">
             <div className="w-full aspect-video">
-              <iframe
-                src={`https://player.vdocipher.com/v2/?otp=${data?.data.videoOTP.otp}&playbackInfo=${data?.data.videoOTP.playbackInfo}`}
-                allowFullScreen
-                className="w-full h-full"
-                allow="encrypted-media"
-              ></iframe>
+              <LessonVideoPlayer otp={data?.data.videoOTP?.otp} />
             </div>
           </Card>
         </div>
