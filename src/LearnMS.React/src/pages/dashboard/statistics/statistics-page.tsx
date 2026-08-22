@@ -212,7 +212,7 @@ function LecturesStatistics({ scale }: { scale: number }) {
         {lectureId && (
           <div className="grid items-center justify-center grid-cols-4 gap-4">
             {items.map((item) => (
-              <Card key={item.title} className="border-indigo-200 bg-gradient-to-br from-card to-indigo-50 p-4 dark:border-indigo-800 dark:to-indigo-950/40">
+              <Card key={item.title} className="border-emerald-200 bg-gradient-to-br from-card to-emerald-50 p-4 dark:border-emerald-800 dark:to-emerald-950/40">
                 <CardTitle className="text-sm">{item.title}</CardTitle>
                 <CardContent className="p-0 pt-2">
                   <span className="text-2xl font-bold">{item.value}</span>
@@ -446,7 +446,7 @@ function IncomesStatistics({ scale }: { scale: number }) {
         ) : (
           <div className="grid grid-cols-4 gap-4">
             {items.map((item) => (
-              <Card key={item.title} className="border-indigo-200 bg-gradient-to-br from-card to-indigo-50 p-4 dark:border-indigo-800 dark:to-indigo-950/40">
+              <Card key={item.title} className="border-emerald-200 bg-gradient-to-br from-card to-emerald-50 p-4 dark:border-emerald-800 dark:to-emerald-950/40">
                 <CardTitle className="text-sm">{item.title}</CardTitle>
                 <CardContent className="p-0 pt-2">
                   <span className="text-2xl font-bold">{item.value}</span>

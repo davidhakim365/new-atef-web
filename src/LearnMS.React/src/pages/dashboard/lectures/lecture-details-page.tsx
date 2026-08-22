@@ -896,7 +896,7 @@ function LectureAssetsFrom({
           </Button>
         </div>
       </div>
-      <div className='flex flex-wrap items-center gap-4 rounded-2xl border-2 border-indigo-200 bg-indigo-50 p-10 dark:border-indigo-800 dark:bg-indigo-950/40'>
+      <div className='flex flex-wrap items-center gap-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-10 dark:border-emerald-800 dark:bg-emerald-950/40'>
         {assets.length === 0 && (
           <p className='self-center text-5xl text-muted-foreground/50'>NO PDFs</p>
         )}

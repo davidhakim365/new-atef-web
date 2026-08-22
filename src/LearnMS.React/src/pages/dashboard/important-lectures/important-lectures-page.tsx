@@ -141,7 +141,7 @@ function CourseLectures({ courseId: courseId }: { courseId: string }) {
           <CardFooter className="p-0">
             <Link
               to={`/dashboard/courses/${courseId}/lectures/${lecture.id}`}
-              className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-indigo-200 px-6 py-3 font-semibold text-indigo-600 transition-all duration-300 hover:bg-indigo-500 hover:text-white focus:ring-4 focus:ring-indigo-200 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-500 dark:hover:text-white"
+              className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-emerald-200 px-6 py-3 font-semibold text-emerald-700 transition-all duration-300 hover:bg-emerald-600 hover:text-white focus:ring-4 focus:ring-emerald-200 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-600 dark:hover:text-white"
             >
               View Lecture
               <svg

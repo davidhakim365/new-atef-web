@@ -56,10 +56,10 @@ const DashboardSideBar = () => {
   return (
     <div className="relative h-full shrink-0">
       {!isSidebarVisible && (
-        <div className="fixed left-3 top-3 z-[9999] flex items-center gap-2 rounded-full border border-indigo-200 bg-card/95 p-1 shadow-lg backdrop-blur dark:border-indigo-800">
+        <div className="fixed left-3 top-3 z-[9999] flex items-center gap-2 rounded-full border border-emerald-200 bg-card/95 p-1 shadow-lg backdrop-blur dark:border-emerald-800">
           <Button
             size="icon"
-            className="rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white hover:from-indigo-600 hover:to-fuchsia-600"
+            className="rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600"
             onClick={() => setSidebarVisible(true)}
             aria-label="Show sidebar"
           >
@@ -70,7 +70,7 @@ const DashboardSideBar = () => {
       )}
       {isSidebarVisible && (
         <div className="flex h-full">
-          <div className="flex h-full w-64 flex-col gap-5 bg-gradient-to-b from-indigo-600 via-violet-600 to-fuchsia-700 p-3 text-white dark:from-indigo-950 dark:via-violet-950 dark:to-slate-950">
+          <div className="flex h-full w-64 flex-col gap-5 bg-gradient-to-b from-emerald-600 via-teal-600 to-green-800 p-3 text-white dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
@@ -141,7 +141,7 @@ function NavGroup({
                 className={cn(
                   "inline-flex w-full items-center rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "bg-white text-indigo-700 shadow-md dark:bg-white/15 dark:text-white"
+                    ? "bg-white text-emerald-700 shadow-md dark:bg-white/15 dark:text-white"
                     : "text-white/80 hover:bg-white/10 hover:text-white"
                 )}
               >

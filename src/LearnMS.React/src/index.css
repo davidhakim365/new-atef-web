@@ -123,51 +123,56 @@
 
 @layer components {
   .dashboard-shell {
-    --background: 226 55% 97%;
+    --background: 152 40% 97%;
     --card: 0 0% 100%;
-    --muted: 226 40% 94%;
-    --accent: 239 80% 94%;
-    --accent-foreground: 239 84% 30%;
+    --muted: 152 24% 94%;
+    --accent: 152 50% 93%;
+    --accent-foreground: 160 84% 20%;
+    --primary: 152 76% 36%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 152 76% 36%;
+    --border: 152 20% 88%;
+    --input: 152 20% 88%;
   }
 
   .dark .dashboard-shell {
-    --background: 232 22% 8%;
-    --foreground: 210 40% 98%;
-    --card: 232 18% 13%;
-    --card-foreground: 210 40% 98%;
-    --popover: 232 18% 13%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 234 89% 68%;
+    --background: 160 18% 7%;
+    --foreground: 150 20% 97%;
+    --card: 160 16% 11%;
+    --card-foreground: 150 20% 97%;
+    --popover: 160 16% 11%;
+    --popover-foreground: 150 20% 97%;
+    --primary: 152 70% 45%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 232 16% 18%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 232 16% 18%;
-    --muted-foreground: 215 16% 72%;
-    --accent: 239 40% 22%;
-    --accent-foreground: 210 40% 98%;
-    --border: 232 14% 24%;
-    --input: 232 14% 24%;
-    --ring: 234 89% 68%;
+    --secondary: 160 12% 16%;
+    --secondary-foreground: 150 20% 97%;
+    --muted: 160 12% 16%;
+    --muted-foreground: 150 12% 72%;
+    --accent: 152 28% 16%;
+    --accent-foreground: 150 20% 97%;
+    --border: 160 12% 20%;
+    --input: 160 12% 20%;
+    --ring: 152 70% 45%;
   }
 
   .dashboard-field {
-    @apply rounded-xl border-2 bg-indigo-50 p-3 text-foreground border-indigo-200
-      dark:bg-indigo-950/45 dark:border-indigo-700;
+    @apply rounded-xl border-2 bg-emerald-50 p-3 text-foreground border-emerald-200
+      dark:bg-emerald-950/45 dark:border-emerald-800;
   }
 
   .dashboard-field-label {
-    @apply font-medium text-indigo-700 dark:text-indigo-300;
+    @apply font-medium text-emerald-800 dark:text-emerald-300;
   }
 
   .dashboard-icon {
-    @apply h-10 w-10 shrink-0 rounded-full bg-indigo-100 p-1 text-indigo-600
-      dark:bg-indigo-900/80 dark:text-indigo-300;
+    @apply h-10 w-10 shrink-0 rounded-full bg-emerald-100 p-1 text-emerald-700
+      dark:bg-emerald-900/80 dark:text-emerald-300;
   }
 
   .dashboard-row {
     @apply flex w-full items-center justify-between gap-2 rounded-xl border px-3
-      py-2 text-foreground bg-indigo-50 border-indigo-200
-      dark:bg-indigo-950/40 dark:border-indigo-800;
+      py-2 text-foreground bg-emerald-50 border-emerald-200
+      dark:bg-emerald-950/40 dark:border-emerald-800;
   }
 
   .dashboard-panel {

@@ -51,9 +51,9 @@ function AssistantsList({ assistants }: { assistants: Assistant[] }) {
 
 function AssistantListItem({ assistant }: { assistant: Assistant }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-indigo-200 bg-indigo-50 p-3 dark:border-indigo-800 dark:bg-indigo-950/40">
+    <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/40">
       <div className="flex items-center justify-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-white">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
           <Shield />
         </div>
         <div className="text-xl text-foreground">{assistant.email}</div>
@@ -65,7 +65,7 @@ function AssistantListItem({ assistant }: { assistant: Assistant }) {
           </HoverCardTrigger>
           <HoverCardContent className="w-fit">
             {assistant.permissions?.map((permission) => (
-              <div className="text-sm text-indigo-700 dark:text-indigo-300" key={permission}>
+              <div className="text-sm text-emerald-700 dark:text-emerald-300" key={permission}>
                 {permission}
               </div>
             ))}
