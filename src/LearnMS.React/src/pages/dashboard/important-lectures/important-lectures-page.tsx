@@ -32,7 +32,13 @@ const ImportantLecturesPage = () => {
   const course = courses.find((item) => item.id === courseId);
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="space-y-4 p-4 text-foreground">
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">Important Lectures</h1>
+        <p className="text-sm text-muted-foreground">
+          Highlight the sessions students should see first
+        </p>
+      </div>
       <div className="flex items-center gap-2 text-foreground">
         <Select
           value={level}
@@ -135,7 +141,7 @@ function CourseLectures({ courseId: courseId }: { courseId: string }) {
           <CardFooter className="p-0">
             <Link
               to={`/dashboard/courses/${courseId}/lectures/${lecture.id}`}
-              className="flex items-center justify-center w-full gap-2 px-6 py-3 font-semibold transition-all duration-300 bg-transparent border-2 rounded-full text-emerald-500 border-emerald-200 hover:bg-emerald-500 hover:text-white focus:ring-4 focus:ring-emerald-200"
+              className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-indigo-200 px-6 py-3 font-semibold text-indigo-600 transition-all duration-300 hover:bg-indigo-500 hover:text-white focus:ring-4 focus:ring-indigo-200 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-500 dark:hover:text-white"
             >
               View Lecture
               <svg

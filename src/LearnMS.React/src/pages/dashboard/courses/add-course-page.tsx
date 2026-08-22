@@ -43,7 +43,7 @@ const AddCoursePage = () => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="border rounded w-[50%] p-10 space-y-2"
+          className="w-[50%] space-y-2 rounded-2xl border border-border bg-card p-10 shadow-lg"
         >
           <FormField
             control={form.control}

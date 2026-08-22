@@ -377,7 +377,7 @@ const LectureDetailsTab: React.FC<TabProps> = ({ lecture }) => {
   };
 
   return (
-    <div className='w-full h-full p-4'>
+    <div className='w-full h-full p-4 text-foreground'>
       <div className='flex w-full'>
         <div className='flex gap-2 ms-auto item-center'>
           <Confirmation
@@ -395,7 +395,7 @@ const LectureDetailsTab: React.FC<TabProps> = ({ lecture }) => {
           <Button
             disabled={isLoading}
             onClick={onPublish}
-            className='bg-white border rounded text-primary border-primary hover:bg-primary hover:text-white'>
+            variant='outline'>
             {lecture.isPublished ? "UnPublish" : "Publish"}
           </Button>
         </div>
@@ -488,7 +488,7 @@ function LectureDetailsForm({
           <fieldset
             className='flex items-center gap-2 p-2 text-xl'
             disabled={isPending}>
-            <Settings2 className='text-blue-400 bg-blue-200 rounded-[50%] w-10 h-10 p-1' />
+            <Settings2 className='dashboard-icon' />
             Session Details
             {form.formState.isDirty && (
               <div className='space-x-1 ms-auto'>
@@ -496,7 +496,6 @@ function LectureDetailsForm({
                 <Button
                   variant='outline'
                   type='button'
-                  className='border-blue-200'
                   onClick={() => form.reset()}>
                   Reset
                 </Button>
@@ -507,10 +506,10 @@ function LectureDetailsForm({
             control={form.control}
             name='title'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-primary'>Title</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Title</FormLabel>
                 <FormControl>
-                  <Input className='text-primary' {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -520,12 +519,12 @@ function LectureDetailsForm({
             control={form.control}
             name='description'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded '>
-                <FormLabel className='text-primary'>Description</FormLabel>
+              <FormItem className='dashboard-field '>
+                <FormLabel className='dashboard-field-label'>Description</FormLabel>
                 <FormControl>
                   <div style={{ height: "200px", width: "100%" }}>
                     <textarea
-                      className='text-blue-500'
+                      className='h-full w-full resize-none rounded-md border border-input bg-background p-2 text-sm text-foreground'
                       style={{
                         height: "100%",
                         width: "100%",
@@ -544,10 +543,10 @@ function LectureDetailsForm({
             control={form.control}
             name='price'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-primary'>Price</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Price</FormLabel>
                 <FormControl>
-                  <Input type='number' className='text-primary' {...field} />
+                  <Input type='number' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -557,10 +556,10 @@ function LectureDetailsForm({
             control={form.control}
             name='renewalPrice'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-primary'>RenewalPrice</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>RenewalPrice</FormLabel>
                 <FormControl>
-                  <Input type='number' className='text-primary' {...field} />
+                  <Input type='number' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -570,10 +569,10 @@ function LectureDetailsForm({
             control={form.control}
             name='expirationDays'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-primary'>Expiration Days</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Expiration Days</FormLabel>
                 <FormControl>
-                  <Input type='number' className='text-primary' {...field} />
+                  <Input type='number' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -583,10 +582,10 @@ function LectureDetailsForm({
             control={form.control}
             name='imageUrl'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-primary'>Image</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Image</FormLabel>
                 <FormControl>
-                  <Input className='text-primary' {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -608,7 +607,7 @@ function LectureContentForm({
     <div className='flex flex-col gap-4 p-4'>
       <div className='flex items-center justify-between text-xl'>
         <div className='flex items-center gap-2'>
-          <ListCollapse className='text-blue-400 bg-blue-200 rounded-[50%] w-10 h-10 p-1' />
+          <ListCollapse className='dashboard-icon' />
           Session Content
         </div>
         <div className='flex items-center justify-center gap-2'>
@@ -620,7 +619,7 @@ function LectureContentForm({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem
-                    className='hover:bg-blue-400 hover:text-white hover:cursor-pointer'
+                    className='hover:cursor-pointer'
                     onClick={() => setIsAddingLecture(true)}>
                     Add Lesson
                   </DropdownMenuItem>
@@ -699,7 +698,7 @@ function LectureItem({
   };
 
   return (
-    <div className='flex items-center justify-between w-full gap-2 bg-blue-100 border border-blue-300 rounded text-primary'>
+    <div className='dashboard-row'>
       <div className='flex gap-2'>
         <div className='p-2'>{item.title}</div>
       </div>
@@ -786,16 +785,16 @@ function AddLessonForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <fieldset
-          className='p-2 space-y-2 border-2 border-blue-400 rounded'
+          className='dashboard-panel'
           disabled={createLessonMutation.isPending}>
           <FormField
             control={form.control}
             name='title'
             render={({ field }) => (
               <FormItem>
-                <FormLabel className='text-primary'>Title</FormLabel>
+                <FormLabel className='dashboard-field-label'>Title</FormLabel>
                 <FormControl>
-                  <Input type='text' className='text-primary' {...field} />
+                  <Input type='text' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -806,9 +805,9 @@ function AddLessonForm({
             name='description'
             render={({ field }) => (
               <FormItem>
-                <FormLabel className='text-primary'>Description</FormLabel>
+                <FormLabel className='dashboard-field-label'>Description</FormLabel>
                 <FormControl>
-                  <Input type='text' className='text-primary' {...field} />
+                  <Input type='text' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -819,9 +818,9 @@ function AddLessonForm({
             name='renewalPrice'
             render={({ field }) => (
               <FormItem>
-                <FormLabel className='text-primary'>Renewal Price</FormLabel>
+                <FormLabel className='dashboard-field-label'>Renewal Price</FormLabel>
                 <FormControl>
-                  <Input type='number' className='text-primary' {...field} />
+                  <Input type='number' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -832,9 +831,9 @@ function AddLessonForm({
             name='expirationHours'
             render={({ field }) => (
               <FormItem>
-                <FormLabel className='text-primary'>Expiration Hours</FormLabel>
+                <FormLabel className='dashboard-field-label'>Expiration Hours</FormLabel>
                 <FormControl>
-                  <Input type='number' className='text-primary' {...field} />
+                  <Input type='number' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -885,7 +884,7 @@ function LectureAssetsFrom({
     <div className='w-full h-full'>
       <div className='flex items-center justify-between m-4 text-2xl'>
         <div className='flex items-center gap-2'>
-          <div className='p-3 bg-primary/30 border-primary/40 rounded-[50%]'>
+          <div className='dashboard-icon flex items-center justify-center'>
             <FaFile className='text-primary' />
           </div>
           PDF
@@ -897,14 +896,14 @@ function LectureAssetsFrom({
           </Button>
         </div>
       </div>
-      <div className='p-10 border-[3px] bg-primary/30 border-primary/50 rounded flex flex-wrap  items-center gap-4'>
+      <div className='flex flex-wrap items-center gap-4 rounded-2xl border-2 border-indigo-200 bg-indigo-50 p-10 dark:border-indigo-800 dark:bg-indigo-950/40'>
         {assets.length === 0 && (
-          <p className='self-center text-5xl text-primary/40'>NO PDFs</p>
+          <p className='self-center text-5xl text-muted-foreground/50'>NO PDFs</p>
         )}
         {assets.map((asset) => (
           <div
             key={asset.id}
-            className='relative p-5 rounded-xl w-52 h-fit bg-white/40'>
+            className='relative p-5 rounded-xl w-52 h-fit bg-card border border-border'>
             <Button
               className='absolute top-0 right-0'
               size='icon'

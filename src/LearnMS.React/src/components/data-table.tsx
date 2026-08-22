@@ -89,7 +89,7 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center py-4 overflow-x-auto text-foreground">
         <DataTableViewOptions table={table} />
       </div>
-      <div className="mb-5 overflow-x-auto border rounded-md">
+      <div className="mb-5 overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
         <div className="max-h-[calc(100vh-12rem)]">
           <Table>
             <TableHeader>

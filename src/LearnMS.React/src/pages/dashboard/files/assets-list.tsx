@@ -101,6 +101,10 @@ const AssetsList = () => {
         inline: false,
         target: "#files-drop-zone",
         height: 200,
+        theme: document.documentElement.classList.contains("dark")
+          ? "dark"
+          : "light",
+        proudlyDisplayPoweredByUppy: false,
       });
 
     return () => {
@@ -115,8 +119,11 @@ const AssetsList = () => {
     }
   };
   return (
-    <div className="w-full h-full text-foreground" id="files-drop-zone">
-      <h1 className="mb-4">Assets</h1>
+    <div className="w-full h-full p-4 text-foreground" id="files-drop-zone">
+      <h1 className="mb-1 text-3xl font-semibold tracking-tight">Files</h1>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Upload images and PDFs for lessons and lectures
+      </p>
       {isLoading ? (
         <Loading />
       ) : (

@@ -53,7 +53,7 @@ const AssistantDetailsPage = () => {
     <div className="w-full h-full p-4 text-foreground">
       <Tabs
         defaultValue="details"
-        className="p-0 border-2 shadow-md rounded-xl shadow-primary border-secondary"
+        className="rounded-xl border border-border bg-card p-0 shadow-sm"
       >
         <TabsList className="m-0 shadow-sm shadow-primary">
           <TabsTrigger value="details">Details</TabsTrigger>

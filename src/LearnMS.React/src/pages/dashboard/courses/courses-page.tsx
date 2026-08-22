@@ -18,17 +18,20 @@ const CoursesPage = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-full ">
-      <Link
-        className="pt-[3vh] items-center justify-center"
-        to={"/dashboard/courses/add"}
-      >
-        <Button>
-          <PlusCircle className="w-4 h-4 mr-2 align-center" />
-          Add Course
-        </Button>
-      </Link>
-      <div className="m-4 max-w-[120vh] align-left w-full overflow-y-auto">
+    <div className="flex w-full flex-col gap-4 p-4 text-foreground">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Courses</h1>
+          <p className="text-sm text-muted-foreground">Create and manage your course catalog</p>
+        </div>
+        <Link to={"/dashboard/courses/add"}>
+          <Button>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Course
+          </Button>
+        </Link>
+      </div>
+      <div className="w-full overflow-y-auto">
         <DataTable columns={coursesColumns} data={courses?.data!.items!} />
       </div>
     </div>

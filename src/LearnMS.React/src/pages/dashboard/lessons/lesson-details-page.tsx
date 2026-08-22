@@ -31,6 +31,7 @@ import Dashboard from "@uppy/dashboard";
 import Tus from "@uppy/tus";
 import { ListCollapse, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTheme } from "@/components/theme-provider";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import "@uppy/core/dist/style.min.css";
@@ -79,9 +80,9 @@ const LessonDetailsPage = () => {
   }
 
   return (
-    <div className='w-full h-full p-4'>
+    <div className='w-full h-full p-4 text-foreground'>
       <div className='flex justify-between w-full'>
-        <h1 className='text-3xl'>Lesson Setup</h1>
+        <h1 className='text-3xl font-semibold tracking-tight'>Lesson Setup</h1>
         <div className='flex gap-2 item-center'>
           <Confirmation
             button={<Button variant='destructive'>Delete</Button>}
@@ -154,15 +155,14 @@ function LessonDetailsContent({
           <fieldset
             className='flex items-center gap-2 p-2 text-xl'
             disabled={updateLessonMutation.isPending}>
-            <Settings2 className='text-blue-400 bg-blue-200 rounded-[50%] w-10 h-10 p-1' />
+            <Settings2 className='dashboard-icon' />
             Lesson Details
             {form.formState.isDirty && (
               <div className='space-x-1 ms-auto'>
-                <Button className='bg-blue-500'>Save</Button>
+                <Button>Save</Button>
                 <Button
                   variant='outline'
                   type='button'
-                  className='border-blue-200'
                   onClick={() => form.reset()}>
                   Reset
                 </Button>
@@ -173,10 +173,10 @@ function LessonDetailsContent({
             control={form.control}
             name='title'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-blue-500'>Title</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Title</FormLabel>
                 <FormControl>
-                  <Input className='text-blue-500' {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -186,10 +186,10 @@ function LessonDetailsContent({
             control={form.control}
             name='description'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-blue-500'>Description</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Description</FormLabel>
                 <FormControl>
-                  <Textarea className='text-blue-500' {...field} />
+                  <Textarea {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -200,10 +200,10 @@ function LessonDetailsContent({
             control={form.control}
             name='renewalPrice'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-blue-500'>Renewal Price</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Renewal Price</FormLabel>
                 <FormControl>
-                  <Input type='number' className='text-blue-500' {...field} />
+                  <Input type='number' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -213,12 +213,12 @@ function LessonDetailsContent({
             control={form.control}
             name='expirationHours'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-blue-500'>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>
                   Expiration Hours
                 </FormLabel>
                 <FormControl>
-                  <Input type='number' className='text-blue-500' {...field} />
+                  <Input type='number' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -243,6 +243,7 @@ function LessonVideo({
 }) {
   const qc = useQueryClient();
   const { data: profile } = useGetProfile();
+  const { theme } = useTheme();
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
 
@@ -253,6 +254,11 @@ function LessonVideo({
   });
 
   useEffect(() => {
+    const isDark =
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+
     const instance = new Uppy({
       autoProceed: true,
       restrictions: {
@@ -272,6 +278,7 @@ function LessonVideo({
       inline: true,
       target: "#lesson-video-uploader",
       height: 260,
+      theme: isDark ? "dark" : "light",
       proudlyDisplayPoweredByUppy: false,
       showProgressDetails: true,
       hideCancelButton: false,
@@ -325,7 +332,7 @@ function LessonVideo({
     return () => {
       instance.close();
     };
-  }, [courseId, lectureId, lessonId, qc]);
+  }, [courseId, lectureId, lessonId, qc, theme]);
 
   const connectYouTube = async () => {
     const res = await api.get<ApiResponse<string>>("/api/youtube/connect");
@@ -338,7 +345,7 @@ function LessonVideo({
     <div className='flex flex-col gap-4 p-4'>
       <div className='flex items-center justify-between text-xl'>
         <div className='flex items-center gap-2'>
-          <ListCollapse className='text-primary bg-blue-200 rounded-[50%] w-10 h-10 p-1' />
+          <ListCollapse className='dashboard-icon' />
           Lesson Content
         </div>
         {profile?.data?.role === "Teacher" && (
@@ -352,7 +359,7 @@ function LessonVideo({
       </div>
 
       {youtubeStatus?.data && youtubeStatus.data.connected === false && (
-        <p className='text-sm text-amber-700'>
+        <p className='text-sm text-amber-700 dark:text-amber-300'>
           Connect video hosting once, then you can upload lesson videos from this page.
         </p>
       )}

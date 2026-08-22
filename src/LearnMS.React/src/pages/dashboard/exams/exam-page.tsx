@@ -73,7 +73,7 @@ const ExamPage = () => {
   }
 
   return (
-    <ScrollArea className='w-full h-full p-4 m-auto rounded shadow-md shadow-primary bg-primary/20 text-primary'>
+    <ScrollArea className='m-auto h-full w-full rounded-2xl border border-border bg-card p-4 text-foreground shadow-lg'>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='px-4'>
           <fieldset
@@ -81,8 +81,8 @@ const ExamPage = () => {
             className='flex flex-col items-start gap-4 '>
             <div className='flex items-center justify-between w-full'>
               {(!examId && (
-                <h1 className='text-3xl text-primary'>Creating A exam</h1>
-              )) || <h1 className='text-3xl text-primary'>Editing A exam</h1>}
+                <h1 className='text-3xl font-semibold tracking-tight'>Creating an exam</h1>
+              )) || <h1 className='text-3xl font-semibold tracking-tight'>Editing an exam</h1>}
               <div className='flex items-center gap-2'>
 
                 <Button type='submit'>Save</Button>

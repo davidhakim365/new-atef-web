@@ -9,7 +9,10 @@ const QuestionsPage = () => {
   return (
     <div className="w-full h-full p-4 text-foreground">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl">Questions</h1>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Questions</h1>
+          <p className="text-sm text-muted-foreground">Build the quiz and exam question bank</p>
+        </div>
         <div className="flex flex-col gap-2">
           <Button onClick={() => openModal("add-multiple-question-modal")}>
             <Plus />

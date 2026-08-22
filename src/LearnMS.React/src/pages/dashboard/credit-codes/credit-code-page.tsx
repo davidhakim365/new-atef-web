@@ -153,7 +153,13 @@ const CreditCodesPage = () => {
     Object.keys(rowSelection).length > 0 ? Object.keys(rowSelection) : null;
 
   return (
-    <div className="w-full h-full p-4 w-[150vh]">
+    <div className="w-full h-full p-4 text-foreground">
+      <div className="mb-2">
+        <h1 className="text-3xl font-semibold tracking-tight">Credit Codes</h1>
+        <p className="text-sm text-muted-foreground">
+          Generate, filter, sell, and export access codes
+        </p>
+      </div>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -212,19 +218,19 @@ const CreditCodesPage = () => {
             type="button"
             onClick={() => onSell(selectedCodes)}
             disabled={sellCreditCodesMutation.isPending}
-            className={`text-3xl text-blue-600 transition-all duration-300 bg-blue-300 border-2 border-blue-600 hover:text-white hover:scale-105 h-14 ${
+            className={`h-14 text-3xl transition-all duration-300 hover:scale-105 ${
               !selectedCodes ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
             Sell
           </Button>
         )}
-        <div className="w-[40%] px-2 py-2 bg-blue-300 border border-blue-500 rounded-xl">
+        <div className="w-[40%] rounded-xl border border-border bg-card px-2 py-2">
           <input
             placeholder="Filter Codes..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full p-2 text-blue-500 rounded-xl focus:outline-none focus:border-none"
+            className="w-full rounded-xl bg-transparent p-2 text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
         </div>
       </div>
@@ -236,7 +242,7 @@ const CreditCodesPage = () => {
           <Button
             disabled={isDownloading}
             variant="outline"
-            className="absolute w-fit h-fit top-4 right-24 text-primary"
+            className="absolute top-4 right-24 h-fit w-fit"
             onClick={onExport}
           >
             {(!isDownloading && <FaFileExport />) || (

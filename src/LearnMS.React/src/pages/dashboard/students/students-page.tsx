@@ -52,44 +52,47 @@ const StudentsPage = () => {
   }, [pageIndex, pageSize, search, level]);
 
   return (
-    <div className="relative flex flex-col w-full h-full p-4 text-foreground">
-      <div className="flex items-center gap-2  top-6 left-6">
-        <Button
-          onClick={() => openModal("add-student-modal")}
-          className="self-end transition-all duration-300 w-fit hover:scale-105"
-        >
-          <Plus /> Add Student
-        </Button>
-        <Input
-          className="w-[20%]"
-          placeholder="search for a student"
-          onChange={(e) => setSearch(e.target.value)}
-          value={search}
-        />
-      </div>
-      <div className="absolute flex gap-3 items-left top-8 right-28 h-fit w-fit">
-        <Button
-          disabled={isDownloading}
-          variant="outline"
-          className="h-8 text-primary"
-          onClick={onExport}
-        >
-          {(!isDownloading && <FaFileExport />) || (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          )}
-        </Button>
-        <Select onValueChange={setLevel}>
-          <SelectTrigger className="self-end h-8 transition-all duration-300 w-fit hover:scale-105">
-            <SelectValue placeholder="Select a level" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={"all"}>All</SelectItem>
-            <SelectItem value={StudentLevel.Level0}>3rd Prep</SelectItem>
-            <SelectItem value={StudentLevel.Level1}>1st Secondary</SelectItem>
-            <SelectItem value={StudentLevel.Level2}>2nd Secondary</SelectItem>
-            <SelectItem value={StudentLevel.Level3}>3rd Secondary</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="flex flex-col w-full h-full gap-4 p-4 text-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Students</h1>
+          <p className="text-sm text-muted-foreground">
+            Search, export, and manage student accounts
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={() => openModal("add-student-modal")}>
+            <Plus className="mr-1 h-4 w-4" /> Add Student
+          </Button>
+          <Input
+            className="w-56"
+            placeholder="search for a student"
+            onChange={(e) => setSearch(e.target.value)}
+            value={search}
+          />
+          <Select onValueChange={setLevel}>
+            <SelectTrigger className="w-fit">
+              <SelectValue placeholder="Select a level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={"all"}>All</SelectItem>
+              <SelectItem value={StudentLevel.Level0}>3rd Prep</SelectItem>
+              <SelectItem value={StudentLevel.Level1}>1st Secondary</SelectItem>
+              <SelectItem value={StudentLevel.Level2}>2nd Secondary</SelectItem>
+              <SelectItem value={StudentLevel.Level3}>3rd Secondary</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            disabled={isDownloading}
+            variant="outline"
+            size="icon"
+            onClick={onExport}
+          >
+            {(!isDownloading && <FaFileExport />) || (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            )}
+          </Button>
+        </div>
       </div>
       {isLoading ? (
         <Loading />

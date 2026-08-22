@@ -39,6 +39,15 @@ import {
   YAxis,
 } from "recharts";
 
+const chartTick = "hsl(var(--muted-foreground))";
+const chartGrid = "hsl(var(--border))";
+const chartTooltipStyle = {
+  backgroundColor: "hsl(var(--card))",
+  border: "1px solid hsl(var(--border))",
+  borderRadius: "0.75rem",
+  color: "hsl(var(--foreground))",
+};
+
 const StatisticsPage = () => {
   const { data: profile, isLoading } = useGetProfile();
 
@@ -62,6 +71,10 @@ const StatisticsPageInner = () => {
 
   return (
     <div className="flex flex-col gap-4 p-4">
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">Statistics</h1>
+        <p className="text-sm text-muted-foreground">Track enrollment, scores, and income</p>
+      </div>
       <div className="flex items-center self-end gap-2 text-foreground">
         Scale
         <Input
@@ -199,7 +212,7 @@ function LecturesStatistics({ scale }: { scale: number }) {
         {lectureId && (
           <div className="grid items-center justify-center grid-cols-4 gap-4">
             {items.map((item) => (
-              <Card key={item.title} className="p-4">
+              <Card key={item.title} className="border-indigo-200 bg-gradient-to-br from-card to-indigo-50 p-4 dark:border-indigo-800 dark:to-indigo-950/40">
                 <CardTitle className="text-sm">{item.title}</CardTitle>
                 <CardContent className="p-0 pt-2">
                   <span className="text-2xl font-bold">{item.value}</span>
@@ -274,25 +287,16 @@ function CoursesStatistics({ scale }: { scale: number }) {
               <CardContent className="pt-4">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={studentsData}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      className="stroke-border"
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
                     <XAxis
                       dataKey="name"
-                      className="text-muted-foreground"
-                      tick={{ fill: "currentColor" }}
+                      tick={{ fill: chartTick }}
                     />
                     <YAxis
-                      className="text-muted-foreground"
-                      tick={{ fill: "currentColor" }}
+                      tick={{ fill: chartTick }}
                     />
                     <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--background))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "0.5rem",
-                      }}
+                      contentStyle={chartTooltipStyle}
                       labelStyle={{ color: "hsl(var(--foreground))" }}
                     />
                     <Legend />
@@ -312,26 +316,11 @@ function CoursesStatistics({ scale }: { scale: number }) {
               <CardContent className="pt-4">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={homeworkScoresData}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      className="stroke-border"
-                    />
-                    <XAxis
-                      dataKey="name"
-                      className="text-muted-foreground"
-                      tick={{ fill: "currentColor" }}
-                    />
-                    <YAxis
-                      className="text-muted-foreground"
-                      tick={{ fill: "currentColor" }}
-                      domain={[0, 100]}
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                    <XAxis dataKey="name" tick={{ fill: chartTick }} />
+                    <YAxis tick={{ fill: chartTick }} domain={[0, 100]} />
                     <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--background))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "0.5rem",
-                      }}
+                      contentStyle={chartTooltipStyle}
                       labelStyle={{ color: "hsl(var(--foreground))" }}
                       formatter={(value) => [
                         `${Number(value).toFixed(2)}%`,
@@ -340,7 +329,7 @@ function CoursesStatistics({ scale }: { scale: number }) {
                     />
                     <Bar
                       dataKey="score"
-                      fill="hsl(221, 83%, 53%)" // blue-600
+                      fill="hsl(221, 83%, 53%)"
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
@@ -353,26 +342,11 @@ function CoursesStatistics({ scale }: { scale: number }) {
               <CardContent className="pt-4">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={quizScoresData}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      className="stroke-border"
-                    />
-                    <XAxis
-                      dataKey="name"
-                      className="text-muted-foreground"
-                      tick={{ fill: "currentColor" }}
-                    />
-                    <YAxis
-                      className="text-muted-foreground"
-                      tick={{ fill: "currentColor" }}
-                      domain={[0, 100]}
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                    <XAxis dataKey="name" tick={{ fill: chartTick }} />
+                    <YAxis tick={{ fill: chartTick }} domain={[0, 100]} />
                     <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--background))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "0.5rem",
-                      }}
+                      contentStyle={chartTooltipStyle}
                       labelStyle={{ color: "hsl(var(--foreground))" }}
                       formatter={(value) => [
                         `${Number(value).toFixed(2)}%`,
@@ -472,7 +446,7 @@ function IncomesStatistics({ scale }: { scale: number }) {
         ) : (
           <div className="grid grid-cols-4 gap-4">
             {items.map((item) => (
-              <Card key={item.title} className="p-4">
+              <Card key={item.title} className="border-indigo-200 bg-gradient-to-br from-card to-indigo-50 p-4 dark:border-indigo-800 dark:to-indigo-950/40">
                 <CardTitle className="text-sm">{item.title}</CardTitle>
                 <CardContent className="p-0 pt-2">
                   <span className="text-2xl font-bold">{item.value}</span>

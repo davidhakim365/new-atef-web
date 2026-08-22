@@ -32,9 +32,9 @@ const ExamStudentsPage = () => {
     search,
   });
   return (
-    <div className='w-full h-full'>
-      <h1 className='text-3xl font-bold text-center text-primary/50'>
-        Students
+    <div className='w-full h-full p-4 text-foreground'>
+      <h1 className='mb-4 text-3xl font-semibold tracking-tight'>
+        Exam students
       </h1>
       {isLoading ? (
         <Loading />

@@ -119,9 +119,9 @@ const DashboardCoursePage = () => {
   };
 
   return (
-    <div className='w-full h-full p-4'>
+    <div className='w-full h-full p-4 text-foreground'>
       <div className='flex justify-between w-full'>
-        <h1 className='text-3xl'>Course Setup</h1>
+        <h1 className='text-3xl font-semibold tracking-tight'>Course Setup</h1>
         <div className='flex gap-2 item-center'>
           <Confirmation
             disabled={deleteCourseMutation.isPending}
@@ -132,7 +132,7 @@ const DashboardCoursePage = () => {
           />
           <Button
             onClick={onPublishing}
-            className='text-blue-500 bg-white border border-blue-500 rounded hover:bg-blue-500 hover:text-white'>
+            variant='outline'>
             {course.isPublished ? "UnPublish" : "Publish"}
           </Button>
         </div>
@@ -219,15 +219,14 @@ function CourseDetailsForm({
           <fieldset
             className='flex items-center gap-2 p-2 text-xl'
             disabled={updateCourseMutation.isPending}>
-            <Settings2 className='text-blue-400 bg-blue-200 rounded-[50%] w-10 h-10 p-1' />
+            <Settings2 className='dashboard-icon' />
             Course Details
             {form.formState.isDirty && (
               <div className='space-x-1 ms-auto'>
-                <Button className='bg-blue-500'>Save</Button>
+                <Button>Save</Button>
                 <Button
                   variant='outline'
                   type='button'
-                  className='border-blue-200'
                   onClick={() => form.reset()}>
                   Reset
                 </Button>
@@ -238,10 +237,10 @@ function CourseDetailsForm({
             control={form.control}
             name='title'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-blue-500'>Title</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Title</FormLabel>
                 <FormControl>
-                  <Input className='text-blue-500' {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -251,10 +250,10 @@ function CourseDetailsForm({
             control={form.control}
             name='description'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-blue-500'>Description</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Description</FormLabel>
                 <FormControl>
-                  <Input className='text-blue-500' {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -263,13 +262,13 @@ function CourseDetailsForm({
           <FormField
             name='level'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-blue-500'>Level</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Level</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger className='text-blue-500'>
+                    <SelectTrigger>
                       <SelectValue placeholder='Select a level' />
                     </SelectTrigger>
                   </FormControl>
@@ -288,10 +287,10 @@ function CourseDetailsForm({
             control={form.control}
             name='price'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-blue-500'>Price</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Price</FormLabel>
                 <FormControl>
-                  <Input type='number' className='text-blue-500' {...field} />
+                  <Input type='number' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -301,10 +300,10 @@ function CourseDetailsForm({
             control={form.control}
             name='renewalPrice'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-blue-500'>RenewalPrice</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>RenewalPrice</FormLabel>
                 <FormControl>
-                  <Input type='number' className='text-blue-500' {...field} />
+                  <Input type='number' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -314,10 +313,10 @@ function CourseDetailsForm({
             control={form.control}
             name='expirationDays'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-primary'>Expiration Days</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Expiration Days</FormLabel>
                 <FormControl>
-                  <Input type='number' className='text-primary' {...field} />
+                  <Input type='number' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -327,10 +326,10 @@ function CourseDetailsForm({
             control={form.control}
             name='imageUrl'
             render={({ field }) => (
-              <FormItem className='p-3 bg-blue-200 border-2 border-blue-400 rounded'>
-                <FormLabel className='text-blue-500'>Image</FormLabel>
+              <FormItem className='dashboard-field'>
+                <FormLabel className='dashboard-field-label'>Image</FormLabel>
                 <FormControl>
-                  <Input className='text-blue-500' {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -351,7 +350,7 @@ function CourseContentForm({ items, id }: GetDashboardCourseResult) {
     <div className='flex flex-col gap-4 p-4'>
       <div className='flex items-center justify-between text-xl'>
         <div className='flex items-center gap-2'>
-          <ListCollapse className='text-blue-400 bg-blue-200 rounded-[50%] w-10 h-10 p-1' />
+          <ListCollapse className='dashboard-icon' />
           Course Content
         </div>
         <div className='flex items-center justify-center gap-2'>
@@ -363,7 +362,7 @@ function CourseContentForm({ items, id }: GetDashboardCourseResult) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem
-                    className='hover:bg-blue-400 hover:text-white hover:cursor-pointer'
+                    className='hover:cursor-pointer'
                     onClick={() => setIsAddingLecture(true)}>
                     Add Lecture
                   </DropdownMenuItem>
@@ -372,7 +371,7 @@ function CourseContentForm({ items, id }: GetDashboardCourseResult) {
                     onClick={() =>
                       navigate(`/dashboard/courses/${id}/exams/add`)
                     }
-                    className='hover:bg-blue-400 hover:text-white hover:cursor-pointer'>
+                    className='hover:cursor-pointer'>
                     Add Exam
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -414,7 +413,7 @@ function CourseItem({
   courseId: string;
 }) {
   return (
-    <div className='flex items-center justify-between w-full gap-2 text-blue-500 bg-blue-100 border border-blue-300 rounded'>
+    <div className='dashboard-row'>
       <div className='flex gap-2'>
 
         <div className='p-2'>{item.title}</div>
@@ -472,16 +471,16 @@ function AddLectureForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <fieldset
-          className='p-2 space-y-2 border-2 border-blue-400 rounded'
+          className='dashboard-panel'
           disabled={createLectureMutation.isPending}>
           <FormField
             control={form.control}
             name='title'
             render={({ field }) => (
               <FormItem>
-                <FormLabel className='text-blue-500'>Title</FormLabel>
+                <FormLabel className='dashboard-field-label'>Title</FormLabel>
                 <FormControl>
-                  <Input type='text' className='text-blue-500' {...field} />
+                  <Input type='text' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

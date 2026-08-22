@@ -53,7 +53,7 @@ const StudentDetailsPage = () => {
   const { studentId } = useParams();
 
   return (
-    <div className="w-full h-full p-0 overflow-x-auto">
+    <div className="w-full h-full p-4 overflow-x-auto text-foreground">
       <Tabs defaultValue="profile" className="w-full h-full m-0">
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
