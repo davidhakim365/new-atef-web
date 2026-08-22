@@ -104,7 +104,22 @@
   "about": {
     "badge": "Meet your Instructor",
     "title": "Who's Dr Atef?",
+    "role": "Expert Chemistry Teacher",
     "description": "Learn about the journey and expertise of our dedicated instructor",
+    "stats": {
+      "experience": {
+        "value": "22+",
+        "label": "Years teaching"
+      },
+      "faculty": {
+        "value": "CU",
+        "label": "Faculty of Pharmacy"
+      },
+      "online": {
+        "value": "5+",
+        "label": "Years online"
+      }
+    },
     "items": {
       "1": {
         "title": "Early Career",
@@ -112,7 +127,7 @@
       },
       "2": {
         "title": "Current Position",
-        "description": "Vice-Principal at Saint Mary's Private Language School (Egypt), "
+        "description": "Vice-Principal at Saint Mary's Private Language School (Egypt)"
       },
       "3": {
         "title": "Online Teaching",

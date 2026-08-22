@@ -132,6 +132,29 @@ function HexGrid() {
   );
 }
 
+export function ChemistryPortrait({ className }: { className?: string }) {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <div
+      className={cn(
+        "relative flex h-44 w-44 items-center justify-center md:h-52 md:w-52",
+        className
+      )}
+      aria-hidden
+    >
+      <div className="absolute inset-0 rounded-full bg-emerald-400/20 blur-2xl" />
+      <AtomGraphic
+        className="absolute inset-0 h-full w-full"
+        reduceMotion={!!reduceMotion}
+      />
+      <div className="relative z-10 flex h-[46%] w-[46%] items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-800 text-lg font-semibold tracking-wide text-white shadow-lg md:text-xl">
+        AH
+      </div>
+    </div>
+  );
+}
+
 function AtomGraphic({
   className,
   reduceMotion,

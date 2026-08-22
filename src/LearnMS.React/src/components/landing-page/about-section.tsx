@@ -1,209 +1,160 @@
-import { Badge } from "../ui/badge";
-import { Briefcase, School, Laptop, Atom } from "lucide-react";
+import { FlaskConical, School, MonitorPlay } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Heading } from "../ui/heading";
 import { SubHeading } from "../ui/sub-heading";
-import { WobbleCard } from "../ui/wobble-card";
-import { CardContent, CardHeader } from "@/components/ui/card";
-import { BlurryBackground } from "@/components/ui/blurry-background";
+import {
+  ChemistryGraphics,
+  ChemistryPortrait,
+} from "./chemistry-graphics";
 
-// Animation variants
-const leftToRightVariants = {
-  hidden: { opacity: 0, filter: "blur(20px)", x: -300 },
+const fadeUp = {
+  hidden: { opacity: 0, y: 28 },
   visible: {
     opacity: 1,
-    filter: "blur(0px)",
-    x: 0,
-    transition: { duration: 1.0, ease: "easeInOut" },
-  },
-};
-
-const cardItemVariants = {
-  hidden: { opacity: 0, filter: "blur(20px)", scale: 0, y: 300 },
-  visible: {
-    opacity: 1,
-    filter: "blur(0px)",
-    scale: 1,
     y: 0,
-    transition: { type: "spring", bounce: 0.4, duration: 0.9 },
+    transition: { duration: 0.55, ease: "easeOut" },
   },
 };
 
-const sectionContentVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const textGroupVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0,
-    },
-  },
-};
-
-const cardGridContainerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.4,
-    },
-  },
-};
-
-// Updated green color theme
 const cardData = [
   {
-    icon: Atom,
-    bgClass: "bg-emerald-600",
+    icon: FlaskConical,
     titleKey: "about.items.1.title",
     descKey: "about.items.1.description",
-    textColor: "text-white",
   },
   {
     icon: School,
-    bgClass: "bg-green-700",
     titleKey: "about.items.2.title",
     descKey: "about.items.2.description",
-    textColor: "text-white",
   },
   {
-    icon: Laptop,
-    bgClass: "bg-emerald-900",
+    icon: MonitorPlay,
     titleKey: "about.items.3.title",
     descKey: "about.items.3.description",
-    textColor: "text-white",
   },
 ];
 
 function AboutSection() {
   const { t } = useTranslation();
 
-  const gradientColors = {
-    from: "oklch(0.65 0.2 150)", // soft green
-    to: "oklch(0.45 0.25 180)",  // darker green-blue
-  };
+  const stats = [
+    {
+      value: t("about.stats.experience.value"),
+      label: t("about.stats.experience.label"),
+    },
+    {
+      value: t("about.stats.faculty.value"),
+      label: t("about.stats.faculty.label"),
+    },
+    {
+      value: t("about.stats.online.value"),
+      label: t("about.stats.online.label"),
+    },
+  ];
 
   return (
     <motion.section
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
-      variants={sectionContentVariants}
-      className="relative py-16 bg-aboutSection md:py-32"
+      variants={{
+        visible: { transition: { staggerChildren: 0.12 } },
+      }}
+      className="relative overflow-hidden py-16 md:py-28 bg-gradient-to-b from-white via-emerald-50/70 to-white dark:from-slate-950 dark:via-emerald-950/30 dark:to-slate-950"
     >
-      <BlurryBackground
-        gradientColors={gradientColors}
-        className="absolute inset-0 z-0"
-      />
+      <ChemistryGraphics className="opacity-35" />
 
-      <div className="relative z-10 px-6 mx-auto max-w-7xl">
-        <motion.div variants={textGroupVariants} className="text-center">
-          <motion.div variants={leftToRightVariants}>
-            <Badge className="px-4 py-1 mb-4 text-sm font-medium text-neutral-700 bg-neutral-100 border-neutral-200 hover:bg-neutral-200 dark:text-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 dark:hover:bg-neutral-600">
-              {t("about.badge")}
-            </Badge>
-          </motion.div>
-
-          <motion.div variants={leftToRightVariants}>
-            <Heading className="text-3xl font-bold tracking-wide text-balance md:text-4xl lg:text-5xl text-neutral-900 dark:text-neutral-50">
-              {t("about.title")}
-            </Heading>
-          </motion.div>
-
-          <motion.div variants={leftToRightVariants}>
-            <SubHeading className="mt-4 text-lg tracking-wide text-balance md:text-xl text-neutral-600 dark:text-neutral-400">
-              {t("about.description")}
-            </SubHeading>
-          </motion.div>
+      <div className="relative z-10 px-6 mx-auto max-w-6xl">
+        <motion.div variants={fadeUp} className="text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/90 px-3 py-1 text-xs font-semibold tracking-wide text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-200">
+            <FlaskConical className="h-3.5 w-3.5" />
+            {t("about.badge")}
+          </span>
+          <Heading
+            as="h2"
+            className="mt-4 text-3xl font-bold tracking-wide text-balance md:text-4xl lg:text-5xl"
+          >
+            {t("about.title")}
+          </Heading>
+          <SubHeading className="mt-4 text-lg tracking-wide text-balance md:text-xl">
+            {t("about.description")}
+          </SubHeading>
         </motion.div>
 
-        <CardGrid cards={cardData} t={t} />
+        <div className="mt-12 grid items-stretch gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
+          <motion.div
+            variants={fadeUp}
+            className="relative overflow-hidden rounded-3xl border border-emerald-200/80 bg-white/80 p-8 shadow-xl backdrop-blur-sm dark:border-emerald-800/70 dark:bg-slate-950/70 md:p-10"
+          >
+            <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-400/20 blur-3xl" />
+            <div className="flex flex-col items-center text-center md:flex-row md:items-center md:text-start md:gap-8">
+              <ChemistryPortrait />
+              <div className="mt-6 md:mt-0">
+                <p className="font-mono text-xs tracking-[0.22em] text-emerald-700 dark:text-emerald-300">
+                  C₆H₆ · H₂O · NaCl
+                </p>
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white md:text-3xl">
+                  {t("hero.title")}
+                </h3>
+                <p className="mt-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                  {t("about.role")}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8 grid grid-cols-3 gap-3 border-t border-emerald-100 pt-6 dark:border-emerald-900/60">
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-xl font-semibold text-emerald-700 dark:text-emerald-300 md:text-2xl">
+                    {stat.value}
+                  </p>
+                  <p className="mt-1 text-[11px] font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400 md:text-xs">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          <motion.ol
+            variants={{
+              visible: { transition: { staggerChildren: 0.1 } },
+            }}
+            className="relative flex flex-col gap-4"
+          >
+            {cardData.map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <motion.li
+                  key={item.titleKey}
+                  variants={fadeUp}
+                  className="group relative overflow-hidden rounded-2xl border border-emerald-200/80 bg-white/85 p-5 shadow-sm backdrop-blur-sm transition-colors hover:border-emerald-400 hover:bg-emerald-50/80 dark:border-emerald-800/70 dark:bg-slate-950/70 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/50 md:p-6"
+                >
+                  <div className="flex gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20">
+                      <Icon className="size-5" aria-hidden />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
+                        0{i + 1}
+                      </p>
+                      <h3 className="mt-1 text-lg font-semibold text-neutral-900 dark:text-white md:text-xl">
+                        {t(item.titleKey)}
+                      </h3>
+                      <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
+                        {t(item.descKey)}
+                      </p>
+                    </div>
+                  </div>
+                </motion.li>
+              );
+            })}
+          </motion.ol>
+        </div>
       </div>
     </motion.section>
   );
 }
 
 export default AboutSection;
-
-// ==============
-// CardGrid
-// ==============
-
-function CardGrid({
-  cards,
-  t,
-}: {
-  cards: {
-    icon: React.ElementType;
-    bgClass: string;
-    titleKey: string;
-    descKey: string;
-    textColor?: string;
-  }[];
-  t: (key: string) => string;
-}) {
-  return (
-    <motion.div
-      variants={cardGridContainerVariants}
-      className="md:max-w-full md:grid-cols-3 mx-auto mt-8 grid max-w-sm gap-6 *:text-center md:mt-16"
-    >
-      {cards.map((item, i) => {
-        const Icon = item.icon;
-        return (
-          <motion.div key={i} variants={cardItemVariants}>
-            <WobbleCard containerClassName={`group ${item.bgClass}`}>
-              <CardHeader className="pb-3">
-                <CardDecorator>
-                  <Icon className={`${item.textColor ?? "text-white"} size-6`} aria-hidden />
-                </CardDecorator>
-                <Heading className={item.textColor ?? "text-white"}>
-                  {t(item.titleKey)}
-                </Heading>
-              </CardHeader>
-              <CardContent>
-                <SubHeading
-                  className={`mt-4 tracking-wide text-md text-balance md:text-lg ${
-                    item.textColor ?? "text-white"
-                  }`}
-                >
-                  {t(item.descKey)}
-                </SubHeading>
-              </CardContent>
-            </WobbleCard>
-          </motion.div>
-        );
-      })}
-    </motion.div>
-  );
-}
-
-// ==============
-// CardDecorator
-// ==============
-
-const CardDecorator = ({ children }: { children: React.ReactNode }) => (
-  <div
-    aria-hidden
-    className="relative mx-auto size-36 [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]"
-  >
-    <div className="absolute inset-0 [--border:black] dark:[--border:white] bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:24px_24px] opacity-10" />
-    <div
-      className="absolute inset-0 flex items-center justify-center m-auto border-t border-l size-12"
-      style={{ backgroundColor: "var(--background)" }}
-    >
-      {children}
-    </div>
-  </div>
-);
