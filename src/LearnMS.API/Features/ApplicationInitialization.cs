@@ -14,7 +14,7 @@ public static class ApplicationInitialization
         var scope = app.Services.CreateAsyncScope();
 
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.MigrateAsync();
+        await EnsurePaymentRequestsTableAsync(db);
 
         var administrationService = scope.ServiceProvider.GetRequiredService<IAdministrationService>();
         var administrationConfig = scope.ServiceProvider.GetRequiredService<IOptions<AdministrationConfig>>();
@@ -62,6 +62,44 @@ public static class ApplicationInitialization
             {
                 Console.WriteLine(ex);
             }
+        }
+    }
+
+    private static async Task EnsurePaymentRequestsTableAsync(AppDbContext db)
+    {
+        try
+        {
+            await db.Database.ExecuteSqlRawAsync(
+                """
+                CREATE TABLE IF NOT EXISTS "PaymentRequests" (
+                    "Id" uuid NOT NULL,
+                    "StudentId" uuid NOT NULL,
+                    "Amount" numeric(18,2) NOT NULL,
+                    "ImageUrl" character varying(2048) NOT NULL,
+                    "ImageThumbUrl" character varying(2048) NULL,
+                    "Note" character varying(500) NULL,
+                    "Status" text NOT NULL,
+                    "ReviewedById" uuid NULL,
+                    "RejectionReason" character varying(500) NULL,
+                    "CreatedAt" timestamp with time zone NOT NULL,
+                    "ReviewedAt" timestamp with time zone NULL,
+                    CONSTRAINT "PK_PaymentRequests" PRIMARY KEY ("Id")
+                )
+                """
+            );
+            await db.Database.ExecuteSqlRawAsync(
+                """CREATE INDEX IF NOT EXISTS "IX_PaymentRequests_CreatedAt" ON "PaymentRequests" ("CreatedAt")"""
+            );
+            await db.Database.ExecuteSqlRawAsync(
+                """CREATE INDEX IF NOT EXISTS "IX_PaymentRequests_Status" ON "PaymentRequests" ("Status")"""
+            );
+            await db.Database.ExecuteSqlRawAsync(
+                """CREATE INDEX IF NOT EXISTS "IX_PaymentRequests_StudentId" ON "PaymentRequests" ("StudentId")"""
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Could not ensure PaymentRequests table: {ex.Message}");
         }
     }
 }
