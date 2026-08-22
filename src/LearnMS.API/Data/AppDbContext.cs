@@ -29,4 +29,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Lecture> Lectures => Set<Lecture>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<CreditCode> CreditCodes => Set<CreditCode>();
+    public DbSet<PaymentRequest> PaymentRequests => Set<PaymentRequest>();
 }

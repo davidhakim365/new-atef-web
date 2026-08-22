@@ -9,6 +9,7 @@ import AddCoursePage from "@/pages/dashboard/courses/add-course-page";
 import CoursesPage from "@/pages/dashboard/courses/courses-page";
 import DashboardCoursePage from "@/pages/dashboard/courses/dashboard-course-page";
 import CreditCodesPage from "@/pages/dashboard/credit-codes/credit-code-page";
+import PaymentRequestsPage from "@/pages/dashboard/payment-requests/payment-requests-page";
 import ExamPage from "@/pages/dashboard/exams/exam-page";
 import ExamStudentsPage from "@/pages/dashboard/exams/exam-students-page";
 import FilesPage from "@/pages/dashboard/files/files-page";
@@ -236,6 +237,17 @@ function App() {
                 }
               />
               <Route path="credit-codes" element={<CreditCodesPage />} />
+              <Route
+                path="payment-requests"
+                element={
+                  <RequireAuth
+                    roles={["Teacher", "Assistant"]}
+                    permissions={["ManageStudents"]}
+                  >
+                    <PaymentRequestsPage />
+                  </RequireAuth>
+                }
+              />
               <Route
                 path="files"
                 element={

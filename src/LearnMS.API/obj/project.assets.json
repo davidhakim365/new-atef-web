@@ -7124,7 +7124,7 @@
     ]
   },
   "packageFolders": {
-    "/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/49956b9ac1ec3ca4b2e919fff1381935/nuget": {}
+    "/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/f13fbf75b2e9da930720e0fb01c600ce/nuget": {}
   },
   "project": {
     "version": "1.0.0",
@@ -7132,7 +7132,7 @@
       "projectUniqueName": "/Users/macbookairm3/Documents/GitHub/atefhelmy forIG/new-atef-web/src/LearnMS.API/LearnMS.API.csproj",
       "projectName": "LearnMS.API",
       "projectPath": "/Users/macbookairm3/Documents/GitHub/atefhelmy forIG/new-atef-web/src/LearnMS.API/LearnMS.API.csproj",
-      "packagesPath": "/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/49956b9ac1ec3ca4b2e919fff1381935/nuget",
+      "packagesPath": "/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/f13fbf75b2e9da930720e0fb01c600ce/nuget",
       "outputPath": "/Users/macbookairm3/Documents/GitHub/atefhelmy forIG/new-atef-web/src/LearnMS.API/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [

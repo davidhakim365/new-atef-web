@@ -13,6 +13,7 @@ import {
   Shield,
   Star,
   User,
+  Wallet,
 } from "lucide-react";
 import { useState } from "react";
 import type { ComponentType } from "react";
@@ -29,6 +30,7 @@ const materialLinks = [
     match: "/important-lectures",
   },
   { to: "/dashboard/credit-codes", label: "Credit Codes", icon: QrCode, match: "/credit-codes" },
+  { to: "/dashboard/payment-requests", label: "Payment Requests", icon: Wallet, match: "/payment-requests" },
   { to: "/dashboard/files", label: "Files", icon: File, match: "/files" },
   {
     to: "/dashboard/questions",

@@ -209,22 +209,39 @@
     "signInToBuyLecture": "Sign in to buy the lecture"
   },
   "payments": {
-    "title": "Payment History",
-    "subtitle": "View and manage your payment transactions",
-    "noPayments": "No Payments Found",
-    "noPaymentsDescription": "You haven't made any payments yet. Start exploring our courses to make your first purchase.",
+    "title": "Payments",
+    "subtitle": "Request a transfer or redeem a credit code",
+    "balance": "Current balance",
+    "noPayments": "No payment requests yet",
+    "noPaymentsDescription": "Submit a transfer request with a screenshot, or redeem a credit code.",
     "course": "Course",
     "amount": "Amount",
-    "date": "Payment Date",
+    "date": "Date",
     "transactionId": "Transaction ID",
     "checkStatus": "Check Status",
+    "requestsTitle": "Your payment requests",
+    "requestsSubtitle": "The teacher will confirm the transfer, then the amount is added to your balance.",
     "paymentCard": {
       "title": "Payment"
     },
     "status": {
       "completed": "Completed",
       "pending": "Pending",
-      "failed": "Failed"
+      "failed": "Failed",
+      "confirmed": "Confirmed",
+      "rejected": "Rejected"
+    },
+    "request": {
+      "title": "Request payment",
+      "description": "Upload a screenshot of the money transfer. After the teacher confirms, the amount is added to your balance.",
+      "note": "Note (optional)",
+      "notePlaceholder": "InstaPay / Vodafone Cash sender name or transaction number",
+      "image": "Transfer image",
+      "imageHint": "Click to upload the transfer screenshot",
+      "submit": "Send payment request",
+      "submitting": "Uploading...",
+      "successTitle": "Request sent",
+      "successDescription": "Waiting for the teacher to confirm. Your balance will update after confirmation."
     }
   },
   "common": {

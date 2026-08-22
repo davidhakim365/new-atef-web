@@ -9,6 +9,7 @@ using LearnMS.API.Middlewares;
 using LearnMS.API.Security;
 using LearnMS.API.Security.JwtBearer;
 using LearnMS.API.Security.PasswordHasher;
+using LearnMS.API.ThirdParties.ImgBB;
 using LearnMS.API.ThirdParties.YouTube;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,7 @@ public static class ApplicationDependencyInjection
         RegisterAuth(services, cfg);
         RegisterCommonServices(services, cfg);
         services.RegisterYouTubeService(cfg);
+        services.RegisterImgBBService(cfg);
         services.RegisterFeaturesServices(cfg);
         RegisterSpaClient(services);
         services.AddStorageService(cfg);
@@ -47,6 +49,10 @@ public static class ApplicationDependencyInjection
         {
             opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        });
+        services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(opts =>
+        {
+            opts.MultipartBodyLengthLimit = 10 * 1024 * 1024;
         });
     }
 
