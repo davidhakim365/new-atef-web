@@ -27,11 +27,11 @@ export const FeatureCard = ({
   const navigate = useNavigate();
 
   return (
-    <div
-      className={cn(
-        "relative overflow-hidden px-16 py-10 cursor-pointer",
-        className
-      )}
+      <div
+        className={cn(
+          "relative overflow-hidden px-16 py-10 cursor-pointer transition-colors hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30",
+          className
+        )}
       {...props}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -50,11 +50,9 @@ export const FeatureCard = ({
         </div>
       </div>
 
-      <feature.icon
-        className="text-foreground/75 size-6"
-        strokeWidth={1}
-        aria-hidden
-      />
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-200/80 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300">
+        <feature.icon className="size-6" strokeWidth={1.6} aria-hidden />
+      </div>
       <motion.div
         animate={
           hovered

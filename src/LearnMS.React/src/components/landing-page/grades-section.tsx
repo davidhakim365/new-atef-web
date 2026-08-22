@@ -1,4 +1,4 @@
-import { BookOpenCheck, School, GraduationCap, ScrollText } from "lucide-react";
+import { FlaskConical, Atom, Beaker, TestTube } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { FeatureCard } from "@/components/ui/grid-feature-cards";
@@ -40,25 +40,25 @@ function GradesSection() {
   const grades = [
     {
       title: t("grades.items.thirdMiddle.title"),
-      icon: School,
+      icon: FlaskConical,
       description: t("grades.items.thirdMiddle.description"),
       level: 0,
     },
     {
       title: t("grades.items.firstSecondary.title"),
-      icon: BookOpenCheck,
+      icon: Atom,
       description: t("grades.items.firstSecondary.description"),
       level: 1,
     },
     {
       title: t("grades.items.secondSecondary.title"),
-      icon: ScrollText,
+      icon: Beaker,
       description: t("grades.items.secondSecondary.description"),
       level: 2,
     },
     {
       title: t("grades.items.thirdSecondary.title"),
-      icon: GraduationCap,
+      icon: TestTube,
       description: t("grades.items.thirdSecondary.description"),
       level: 3,
     },
@@ -67,8 +67,8 @@ function GradesSection() {
   const shouldReduceMotion = useReducedMotion();
 
   const gradientColors = {
-    from: "oklch(0.7 0.1 200)",
-    to: "oklch(0.5 0.15 300)",
+    from: "oklch(0.78 0.12 160)",
+    to: "oklch(0.55 0.14 190)",
   };
 
   if (shouldReduceMotion) {
