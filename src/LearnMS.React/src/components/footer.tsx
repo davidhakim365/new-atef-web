@@ -34,7 +34,8 @@ const Footer = () => {
   ];
 
   const navLinks = [
-    { title: t("footer.links.home"), href: "/home" },
+    { title: t("footer.links.home"), href: "/" },
+    { title: t("footer.links.courses"), href: "/courses" },
     { title: t("footer.links.payments"), href: "/payments" },
   ];
 

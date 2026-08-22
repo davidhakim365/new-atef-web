@@ -44,6 +44,7 @@ const NavBar: React.FC<NavBarProps> = ({
 
   const links = propLinks || [
     { href: "/", label: t("navbar.links.home") },
+    { href: "/courses", label: t("navbar.links.courses") },
     { href: "/payments", label: t("navbar.links.payments") },
   ];
 
@@ -119,7 +120,9 @@ const NavBar: React.FC<NavBarProps> = ({
                       to={item.href}
                       className={cn(
                         "relative block px-3 py-2 duration-150 text-accent-foreground whitespace-nowrap",
-                        item.href === pathname && "font-semibold"
+                        (item.href === "/"
+                          ? pathname === "/"
+                          : pathname.startsWith(item.href)) && "font-semibold"
                       )}
                       onMouseEnter={() => setSelectedTab(idx)}
                     >
