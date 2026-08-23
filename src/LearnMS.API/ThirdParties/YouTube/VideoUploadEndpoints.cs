@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.Http.Features;
 using tusdotnet;
@@ -12,6 +13,14 @@ public static class VideoUploadEndpoints
 {
     public const long MaxLessonVideoBytes = 64L * 1024 * 1024 * 1024;
 
+    public static bool IsLessonVideoUpload(PathString path)
+    {
+        var value = path.Value;
+        return value is not null
+            && value.StartsWith("/api/courses/", StringComparison.OrdinalIgnoreCase)
+            && value.Contains("/video", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static void MapVideoUploadEndpoints(this WebApplication app)
     {
         app.MapTus("/api/courses/{courseId}/lectures/{lectureId}/lessons/{lessonId}/video", async context =>
@@ -22,7 +31,10 @@ public static class VideoUploadEndpoints
             string lectureId = context.Request.RouteValues["lectureId"]?.ToString() ?? throw new ArgumentNullException();
             string lessonId = context.Request.RouteValues["lessonId"]?.ToString() ?? throw new ArgumentNullException();
 
-            var videoRoot = Path.Combine(Path.GetTempPath(), "lesson-videos");
+            var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
+            var config = context.RequestServices.GetRequiredService<IConfiguration>();
+            var logger = context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("LessonVideoUpload");
+            var videoRoot = ResolveVideoRoot(env, config);
             var tusPath = Path.Combine(videoRoot, "tus");
             var processingPath = Path.Combine(videoRoot, "processing");
             Directory.CreateDirectory(tusPath);
@@ -33,6 +45,10 @@ public static class VideoUploadEndpoints
             if (maxRequestBody is not null)
                 maxRequestBody.MaxRequestBodySize = null;
 
+            var bodyControl = context.Features.Get<IHttpBodyControlFeature>();
+            if (bodyControl is not null)
+                bodyControl.AllowSynchronousIO = true;
+
             return new DefaultTusConfiguration
             {
                 Store = store,
@@ -40,6 +56,22 @@ public static class VideoUploadEndpoints
                 Expiration = new SlidingExpiration(TimeSpan.FromHours(24)),
                 Events = new()
                 {
+                    OnBeforeCreateAsync = ctx =>
+                    {
+                        logger.LogInformation(
+                            "Lesson video create {LessonId} size {Size} bytes",
+                            lessonId,
+                            ctx.UploadLength
+                        );
+                        if (HasInsufficientDisk(tusPath, ctx.UploadLength))
+                        {
+                            ctx.FailRequest(
+                                HttpStatusCode.InsufficientStorage,
+                                "The server does not have enough disk space for this video."
+                            );
+                        }
+                        return Task.CompletedTask;
+                    },
                     OnFileCompleteAsync = async ctx =>
                     {
                         ITusFile file = await ctx.GetFileAsync();
@@ -69,6 +101,7 @@ public static class VideoUploadEndpoints
                             LessonId = Guid.Parse(lessonId),
                             FilePath = destPath
                         });
+                        logger.LogInformation("Queued lesson video {LessonId} for publishing", lessonId);
                     }
                 }
             };
@@ -89,5 +122,35 @@ public static class VideoUploadEndpoints
 
             return Results.Text(YouTubePlayerHtml.Build(videoId), "text/html; charset=utf-8");
         }).AllowAnonymous();
+    }
+
+    private static string ResolveVideoRoot(IWebHostEnvironment env, IConfiguration config)
+    {
+        var configured = config["Storage:LessonVideosDirectory"];
+        if (!string.IsNullOrWhiteSpace(configured))
+            return configured;
+
+        return Path.Combine(env.ContentRootPath, "data", "lesson-videos");
+    }
+
+    private static bool HasInsufficientDisk(string path, long? uploadLength)
+    {
+        if (uploadLength is null or <= 0)
+            return false;
+
+        try
+        {
+            var root = Path.GetPathRoot(Path.GetFullPath(path));
+            if (string.IsNullOrWhiteSpace(root))
+                return false;
+
+            var drive = new DriveInfo(root);
+            const long reserveBytes = 512L * 1024 * 1024;
+            return drive.AvailableFreeSpace < uploadLength.Value + reserveBytes;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

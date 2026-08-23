@@ -13,7 +13,7 @@ services:
     env_file:
       - .env
     volumes:
-      - lesson_videos:/tmp/lesson-videos
+      - lesson_videos:/app/data/lesson-videos
     depends_on:
       learn_ms.database:
         condition: service_healthy

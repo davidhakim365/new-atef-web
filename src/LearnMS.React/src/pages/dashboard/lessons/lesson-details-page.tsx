@@ -30,7 +30,7 @@ import Uppy from "@uppy/core";
 import Dashboard from "@uppy/dashboard";
 import Tus from "@uppy/tus";
 import { ListCollapse, Settings2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/components/theme-provider";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -245,7 +245,9 @@ function LessonVideo({
   const { data: profile } = useGetProfile();
   const { theme } = useTheme();
   const [progress, setProgress] = useState(0);
+  const [uploadedLabel, setUploadedLabel] = useState("");
   const [uploading, setUploading] = useState(false);
+  const refreshTimers = useRef<number[]>([]);
 
   const { data: youtubeStatus } = useQuery({
     queryKey: ["youtube-status"],
@@ -272,11 +274,15 @@ function LessonVideo({
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-      chunkSize: 8 * 1024 * 1024,
-      retryDelays: [0, 1000, 3000, 5000, 10000, 20000],
+      chunkSize: 5 * 1024 * 1024,
+      limit: 1,
+      retryDelays: [0, 1000, 3000, 5000, 10000, 20000, 30000],
       removeFingerprintOnSuccess: true,
-      onShouldRetry(_err, retryAttempt) {
-        return retryAttempt < 5;
+      onShouldRetry(err: { originalResponse?: { getStatus?: () => number } }, retryAttempt: number) {
+        const status = err?.originalResponse?.getStatus?.();
+        if (status === 401 || status === 403 || status === 413)
+          return false;
+        return retryAttempt < 8;
       },
     }).use(Dashboard, {
       inline: true,
@@ -286,9 +292,10 @@ function LessonVideo({
       proudlyDisplayPoweredByUppy: false,
       showProgressDetails: true,
       hideCancelButton: false,
-      note: "Drop a lesson video here (up to 64 GB). Keep this page open until upload finishes.",
+      note: "3.5 GB videos are supported. The file is sent in 5 MB pieces and can resume if the network drops. Keep this page open.",
     });
 
+    const formatMb = (bytes: number) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     const onProgress = (
       _file: unknown,
       fileProgress: { bytesUploaded: number; bytesTotal: number | null }
@@ -297,10 +304,14 @@ function LessonVideo({
       setProgress(
         Math.round((fileProgress.bytesUploaded / fileProgress.bytesTotal) * 100)
       );
+      setUploadedLabel(
+        `${formatMb(fileProgress.bytesUploaded)} / ${formatMb(fileProgress.bytesTotal)}`
+      );
     };
     const onUpload = () => {
       setUploading(true);
       setProgress(0);
+      setUploadedLabel("");
     };
     const onComplete = (result: { failed: unknown[] }) => {
       setUploading(false);
@@ -320,17 +331,23 @@ function LessonVideo({
         });
       };
       refreshLesson();
-      window.setTimeout(refreshLesson, 15000);
-      window.setTimeout(refreshLesson, 45000);
-      window.setTimeout(refreshLesson, 120000);
+      refreshTimers.current.forEach((id) => window.clearTimeout(id));
+      refreshTimers.current = [15000, 45000, 120000].map((ms) =>
+        window.setTimeout(refreshLesson, ms)
+      );
     };
     const describeError = (error: unknown) => {
-      if (error instanceof Error && error.message) return error.message;
-      if (error && typeof error === "object" && "message" in error) {
-        const message = (error as { message?: unknown }).message;
-        if (typeof message === "string" && message.trim()) return message;
-      }
-      return "The connection dropped or the file is too large. Try again and keep this page open.";
+      const tusError = error as {
+        message?: string;
+        originalResponse?: { getStatus?: () => number; getBody?: () => string };
+      };
+      const status = tusError.originalResponse?.getStatus?.();
+      if (status === 413)
+        return "The server or proxy rejected this file as too large.";
+      if (status === 507)
+        return "The server ran out of disk space while saving the video.";
+      if (tusError.message?.trim()) return tusError.message;
+      return "The connection dropped. Try the same file again; it should resume from where it stopped.";
     };
     const onError = (error: unknown) => {
       setUploading(false);
@@ -356,6 +373,7 @@ function LessonVideo({
     instance.on("restriction-failed", onRestriction);
 
     return () => {
+      refreshTimers.current.forEach((id) => window.clearTimeout(id));
       instance.close();
     };
   }, [courseId, lectureId, lessonId, qc, theme]);
@@ -396,7 +414,9 @@ function LessonVideo({
         <div className='space-y-2'>
           <div className='flex justify-between text-sm text-muted-foreground'>
             <span>Uploading video</span>
-            <span>{progress}%</span>
+            <span>
+              {progress}%{uploadedLabel ? ` · ${uploadedLabel}` : ""}
+            </span>
           </div>
           <Progress value={progress} />
         </div>

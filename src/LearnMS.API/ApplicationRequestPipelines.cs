@@ -1,5 +1,6 @@
 using LearnMS.API.Common.StorageService;
 using LearnMS.API.ThirdParties.YouTube;
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 
 namespace LearnMS.API;
@@ -8,8 +9,18 @@ public static class ApplicationRequestPipelines
 {
     public static void UseApplicationRequestPipelines(this WebApplication app)
     {
+        var forwarded = new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        };
+        forwarded.KnownNetworks.Clear();
+        forwarded.KnownProxies.Clear();
+        app.UseForwardedHeaders(forwarded);
         app.UseSerilogRequestLogging();
-        app.UseHttpsRedirection();
+        app.UseWhen(
+            context => !VideoUploadEndpoints.IsLessonVideoUpload(context.Request.Path),
+            branch => branch.UseHttpsRedirection()
+        );
         app.UseExceptionHandler(opt => { });
         UseSwaggerIfDevelopment(app);
         app.UseAssets();
