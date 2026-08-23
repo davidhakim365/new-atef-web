@@ -34,11 +34,9 @@ public static class VideoUploadEndpoints
             var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
             var config = context.RequestServices.GetRequiredService<IConfiguration>();
             var logger = context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("LessonVideoUpload");
-            var videoRoot = ResolveVideoRoot(env, config);
+            var videoRoot = LessonVideoStorage.EnsureRoot(env, config);
             var tusPath = Path.Combine(videoRoot, "tus");
             var processingPath = Path.Combine(videoRoot, "processing");
-            Directory.CreateDirectory(tusPath);
-            Directory.CreateDirectory(processingPath);
             var store = new TusDiskStore(tusPath, deletePartialFilesOnConcat: true);
 
             var maxRequestBody = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
@@ -122,15 +120,6 @@ public static class VideoUploadEndpoints
 
             return Results.Text(YouTubePlayerHtml.Build(videoId), "text/html; charset=utf-8");
         }).AllowAnonymous();
-    }
-
-    private static string ResolveVideoRoot(IWebHostEnvironment env, IConfiguration config)
-    {
-        var configured = config["Storage:LessonVideosDirectory"];
-        if (!string.IsNullOrWhiteSpace(configured))
-            return configured;
-
-        return Path.Combine(env.ContentRootPath, "data", "lesson-videos");
     }
 
     private static bool HasInsufficientDisk(string path, long? uploadLength)

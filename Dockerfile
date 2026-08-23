@@ -18,5 +18,10 @@ COPY --from=frontend /src/dist/ /app/ClientApp
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
 WORKDIR /app
 COPY --from=backend /app .
+RUN mkdir -p /data/lesson-videos /data/tmp && chmod -R 0777 /data
+ENV TMPDIR=/data/tmp
+ENV TMP=/data/tmp
+ENV TEMP=/data/tmp
+ENV Storage__LessonVideosDirectory=/data/lesson-videos
 
 ENTRYPOINT ["dotnet", "LearnMS.API.dll"]

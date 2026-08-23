@@ -206,7 +206,7 @@ public sealed class YouTubeService
             return await UploadFileAsync(fs, title);
         }
 
-        var tempPath = Path.Combine(Path.GetTempPath(), $"lesson-{Guid.NewGuid():N}.bin");
+        var tempPath = LessonVideoStorage.CreateScratchFile(_environment);
         try
         {
             await using (var temp = File.Create(tempPath))
