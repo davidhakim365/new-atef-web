@@ -1,15 +1,17 @@
 using System.Text;
-using LearnMS.API.Features.Courses;
-using LearnMS.API.Features.Courses.Contracts;
+using Microsoft.AspNetCore.Http.Features;
 using tusdotnet;
 using tusdotnet.Interfaces;
 using tusdotnet.Models;
+using tusdotnet.Models.Expiration;
 using tusdotnet.Stores;
 
 namespace LearnMS.API.ThirdParties.YouTube;
 
 public static class VideoUploadEndpoints
 {
+    public const long MaxLessonVideoBytes = 64L * 1024 * 1024 * 1024;
+
     public static void MapVideoUploadEndpoints(this WebApplication app)
     {
         app.MapTus("/api/courses/{courseId}/lectures/{lectureId}/lessons/{lessonId}/video", async context =>
@@ -20,39 +22,53 @@ public static class VideoUploadEndpoints
             string lectureId = context.Request.RouteValues["lectureId"]?.ToString() ?? throw new ArgumentNullException();
             string lessonId = context.Request.RouteValues["lessonId"]?.ToString() ?? throw new ArgumentNullException();
 
-            var scope = context.RequestServices.CreateScope();
-            var coursesService = scope.ServiceProvider.GetRequiredService<ICoursesService>();
-            var tusPath = Path.Combine(Path.GetTempPath(), "lesson-videos");
+            var videoRoot = Path.Combine(Path.GetTempPath(), "lesson-videos");
+            var tusPath = Path.Combine(videoRoot, "tus");
+            var processingPath = Path.Combine(videoRoot, "processing");
             Directory.CreateDirectory(tusPath);
+            Directory.CreateDirectory(processingPath);
             var store = new TusDiskStore(tusPath, deletePartialFilesOnConcat: true);
+
+            var maxRequestBody = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
+            if (maxRequestBody is not null)
+                maxRequestBody.MaxRequestBodySize = null;
 
             return new DefaultTusConfiguration
             {
                 Store = store,
-                MaxAllowedUploadSizeInBytes = int.MaxValue,
+                MaxAllowedUploadSizeInBytesLong = MaxLessonVideoBytes,
+                Expiration = new SlidingExpiration(TimeSpan.FromHours(24)),
                 Events = new()
                 {
                     OnFileCompleteAsync = async ctx =>
                     {
                         ITusFile file = await ctx.GetFileAsync();
-                        var fs = await file.GetContentAsync(ctx.CancellationToken);
+                        var sourcePath = Path.Combine(tusPath, file.Id);
+                        var destPath = Path.Combine(processingPath, $"{lessonId}-{Guid.NewGuid():N}");
+
+                        if (!File.Exists(sourcePath))
+                            throw new InvalidOperationException("Uploaded video was not found on disk.");
+
+                        File.Move(sourcePath, destPath, overwrite: true);
+
                         try
                         {
-                            await coursesService.ExecuteAsync(new UploadLessonVideoCommand
-                            {
-                                CourseId = Guid.Parse(courseId),
-                                LectureId = Guid.Parse(lectureId),
-                                FS = fs,
-                                LessonId = Guid.Parse(lessonId),
-                            });
-                        }
-                        finally
-                        {
-                            await fs.DisposeAsync();
                             var terminationStore = (ITusTerminationStore)ctx.Store;
-                            await terminationStore.DeleteFileAsync(file.Id, ctx.CancellationToken);
-                            await store.RemoveExpiredFilesAsync(ctx.CancellationToken);
+                            await terminationStore.DeleteFileAsync(file.Id, CancellationToken.None);
                         }
+                        catch
+                        {
+                            // Content was already moved; leftover TUS metadata is best-effort.
+                        }
+
+                        var queue = ctx.HttpContext.RequestServices.GetRequiredService<LessonVideoUploadQueue>();
+                        await queue.EnqueueAsync(new LessonVideoUploadJob
+                        {
+                            CourseId = Guid.Parse(courseId),
+                            LectureId = Guid.Parse(lectureId),
+                            LessonId = Guid.Parse(lessonId),
+                            FilePath = destPath
+                        });
                     }
                 }
             };

@@ -265,14 +265,18 @@ function LessonVideo({
         allowedFileTypes: ["video/*"],
         minNumberOfFiles: 1,
         maxNumberOfFiles: 1,
+        maxFileSize: 64 * 1024 * 1024 * 1024,
       },
     }).use(Tus, {
       endpoint: `/api/courses/${courseId}/lectures/${lectureId}/lessons/${lessonId}/video`,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-      onShouldRetry() {
-        return false;
+      chunkSize: 8 * 1024 * 1024,
+      retryDelays: [0, 1000, 3000, 5000, 10000, 20000],
+      removeFingerprintOnSuccess: true,
+      onShouldRetry(_err, retryAttempt) {
+        return retryAttempt < 5;
       },
     }).use(Dashboard, {
       inline: true,
@@ -282,7 +286,7 @@ function LessonVideo({
       proudlyDisplayPoweredByUppy: false,
       showProgressDetails: true,
       hideCancelButton: false,
-      note: "Drop a lesson video here. Keep this page open until upload finishes.",
+      note: "Drop a lesson video here (up to 64 GB). Keep this page open until upload finishes.",
     });
 
     const onProgress = (
@@ -305,20 +309,41 @@ function LessonVideo({
       toast({
         title: "Video uploaded successfully",
         description:
-          "Playback may take a few minutes while the video finishes processing.",
+          "The file reached the server. Playback can take several minutes while the video is published.",
       });
-      qc.invalidateQueries({
-        queryKey: getGetLessonQueryKey(courseId, lectureId, lessonId),
-      });
-      qc.invalidateQueries({
-        queryKey: ["lesson", { id: lessonId }],
-      });
+      const refreshLesson = () => {
+        qc.invalidateQueries({
+          queryKey: getGetLessonQueryKey(courseId, lectureId, lessonId),
+        });
+        qc.invalidateQueries({
+          queryKey: ["lesson", { id: lessonId }],
+        });
+      };
+      refreshLesson();
+      window.setTimeout(refreshLesson, 15000);
+      window.setTimeout(refreshLesson, 45000);
+      window.setTimeout(refreshLesson, 120000);
     };
-    const onError = () => {
+    const describeError = (error: unknown) => {
+      if (error instanceof Error && error.message) return error.message;
+      if (error && typeof error === "object" && "message" in error) {
+        const message = (error as { message?: unknown }).message;
+        if (typeof message === "string" && message.trim()) return message;
+      }
+      return "The connection dropped or the file is too large. Try again and keep this page open.";
+    };
+    const onError = (error: unknown) => {
       setUploading(false);
       toast({
         title: "Video upload failed",
-        description: "Check that video hosting is connected, then try again.",
+        description: describeError(error),
+        variant: "destructive",
+      });
+    };
+    const onRestriction = (_file: unknown, error: unknown) => {
+      toast({
+        title: "This video cannot be uploaded",
+        description: describeError(error),
         variant: "destructive",
       });
     };
@@ -327,7 +352,8 @@ function LessonVideo({
     instance.on("upload-progress", onProgress);
     instance.on("complete", onComplete);
     instance.on("error", onError);
-    instance.on("upload-error", onError);
+    instance.on("upload-error", (_file: unknown, error: unknown) => onError(error));
+    instance.on("restriction-failed", onRestriction);
 
     return () => {
       instance.close();

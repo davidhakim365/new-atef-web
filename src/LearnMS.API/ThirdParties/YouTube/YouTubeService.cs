@@ -200,6 +200,12 @@ public sealed class YouTubeService
             }
         }
 
+        if (fs.CanSeek)
+        {
+            fs.Seek(0, SeekOrigin.Begin);
+            return await UploadFileAsync(fs, title);
+        }
+
         var tempPath = Path.Combine(Path.GetTempPath(), $"lesson-{Guid.NewGuid():N}.bin");
         try
         {
@@ -233,7 +239,7 @@ public sealed class YouTubeService
         await client.SendAsync(request);
     }
 
-    private async Task<string> UploadFileAsync(FileStream fileStream, string title)
+    private async Task<string> UploadFileAsync(Stream fileStream, string title)
     {
         var accessToken = await GetAccessTokenAsync();
         var client = _httpClientFactory.CreateClient("YouTubeApi");
@@ -263,7 +269,7 @@ public sealed class YouTubeService
             "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status"
         );
         initRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        initRequest.Headers.TryAddWithoutValidation("X-Upload-Content-Type", "video/*");
+        initRequest.Headers.TryAddWithoutValidation("X-Upload-Content-Type", "video/mp4");
         initRequest.Headers.TryAddWithoutValidation("X-Upload-Content-Length", fileStream.Length.ToString());
         initRequest.Content = new StringContent(metadata, Encoding.UTF8, "application/json");
 
@@ -277,7 +283,7 @@ public sealed class YouTubeService
                 "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status"
             );
             retry.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            retry.Headers.TryAddWithoutValidation("X-Upload-Content-Type", "video/*");
+            retry.Headers.TryAddWithoutValidation("X-Upload-Content-Type", "video/mp4");
             retry.Headers.TryAddWithoutValidation("X-Upload-Content-Length", fileStream.Length.ToString());
             retry.Content = new StringContent(metadata, Encoding.UTF8, "application/json");
             initResponse.Dispose();
@@ -294,10 +300,10 @@ public sealed class YouTubeService
         }
     }
 
-    private static async Task<string> UploadChunksAsync(
+    private async Task<string> UploadChunksAsync(
         HttpClient client,
         Uri uploadUrl,
-        FileStream fileStream,
+        Stream fileStream,
         string accessToken
     )
     {
@@ -313,31 +319,55 @@ public sealed class YouTubeService
                 break;
 
             var end = offset + read - 1;
-            using var chunk = new ByteArrayContent(buffer, 0, read);
-            chunk.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-            chunk.Headers.ContentRange = new ContentRangeHeaderValue(offset, end, total);
+            Exception? lastError = null;
 
-            using var request = new HttpRequestMessage(HttpMethod.Put, uploadUrl) { Content = chunk };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-            using var response = await client.SendAsync(request);
-            if (response.StatusCode == System.Net.HttpStatusCode.PermanentRedirect
-                || (int)response.StatusCode == 308)
+            for (var attempt = 0; attempt < 5; attempt++)
             {
-                offset += read;
-                continue;
+                using var chunk = new ByteArrayContent(buffer, 0, read);
+                chunk.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                chunk.Headers.ContentRange = new ContentRangeHeaderValue(offset, end, total);
+
+                using var request = new HttpRequestMessage(HttpMethod.Put, uploadUrl) { Content = chunk };
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && attempt < 4)
+                {
+                    InvalidateAccessToken();
+                    accessToken = await GetAccessTokenAsync();
+                    continue;
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.PermanentRedirect
+                    || (int)response.StatusCode == 308)
+                {
+                    offset += read;
+                    lastError = null;
+                    break;
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    lastError = new ApiException(YouTubeErrors.UploadFailed);
+                    if (attempt < 4)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt)));
+                        continue;
+                    }
+                    throw lastError;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+                var id = doc.RootElement.GetProperty("id").GetString();
+                if (!IsYouTubeVideoId(id))
+                    throw new ApiException(YouTubeErrors.UploadFailed);
+
+                return id!;
             }
 
-            if (!response.IsSuccessStatusCode)
-                throw new ApiException(YouTubeErrors.UploadFailed);
-
-            var json = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            var id = doc.RootElement.GetProperty("id").GetString();
-            if (!IsYouTubeVideoId(id))
-                throw new ApiException(YouTubeErrors.UploadFailed);
-
-            return id!;
+            if (lastError is not null)
+                throw lastError;
         }
 
         throw new ApiException(YouTubeErrors.UploadFailed);

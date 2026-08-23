@@ -12,6 +12,8 @@ services:
       - 3000:8080
     env_file:
       - .env
+    volumes:
+      - lesson_videos:/tmp/lesson-videos
     depends_on:
       learn_ms.database:
         condition: service_healthy
@@ -32,3 +34,4 @@ services:
 
 volumes:
   learn_ms_database:
+  lesson_videos:

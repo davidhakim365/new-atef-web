@@ -52,7 +52,7 @@ public static class ApplicationDependencyInjection
         });
         services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(opts =>
         {
-            opts.MultipartBodyLengthLimit = 10 * 1024 * 1024;
+            opts.MultipartBodyLengthLimit = long.MaxValue;
         });
     }
 

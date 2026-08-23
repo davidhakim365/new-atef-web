@@ -213,3 +213,4 @@
 /Users/macbookairm3/Documents/GitHub/atefhelmy forIG/new-atef-web/src/LearnMS.API/obj/Debug/net8.0/LearnMS.API.pdb
 /Users/macbookairm3/Documents/GitHub/atefhelmy forIG/new-atef-web/src/LearnMS.API/obj/Debug/net8.0/LearnMS.API.genruntimeconfig.cache
 /Users/macbookairm3/Documents/GitHub/atefhelmy forIG/new-atef-web/src/LearnMS.API/obj/Debug/net8.0/ref/LearnMS.API.dll
+/Users/macbookairm3/Documents/GitHub/atefhelmy forIG/new-atef-web/src/LearnMS.API/bin/Debug/net8.0/appsettings.Development.json

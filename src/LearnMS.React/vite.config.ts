@@ -20,8 +20,13 @@ export default defineConfig({
   server: {
     port: 4000,
      proxy: {
-       "/api": "http://localhost:5000",
-     }
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+        timeout: 0,
+        proxyTimeout: 0,
+      },
+    },
   },
   resolve: {
     alias: {
