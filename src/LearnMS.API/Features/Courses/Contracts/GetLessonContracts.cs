@@ -35,6 +35,7 @@ public record GetDashboardLessonResult : GetLessonResult
 {
     public VideoOTP? VideoOTP { get; init; }
     public required string? VideoId { get; init; }
+    public required string VideoStatus { get; init; }
 }
 
 // for student

@@ -10,7 +10,6 @@ public static class YouTubeServiceDependencyInjection
             client.Timeout = TimeSpan.FromHours(2);
         });
         services.AddSingleton<YouTubeService>();
-        services.AddSingleton<LessonVideoUploadQueue>();
         services.AddHostedService<LessonVideoUploadWorker>();
         return services;
     }

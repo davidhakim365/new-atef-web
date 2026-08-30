@@ -293,7 +293,14 @@ public sealed class YouTubeService
         using (initResponse)
         {
             if (!initResponse.IsSuccessStatusCode || initResponse.Headers.Location is null)
-                throw new ApiException(YouTubeErrors.UploadFailed);
+            {
+                var errorBody = await initResponse.Content.ReadAsStringAsync();
+                throw new ApiException(new ApiError(
+                    YouTubeErrors.UploadFailed.Code,
+                    $"Failed to publish the video to YouTube ({(int)initResponse.StatusCode}). {TrimYouTubeError(errorBody)}",
+                    YouTubeErrors.UploadFailed.StatusCode
+                ));
+            }
 
             var uploadUrl = initResponse.Headers.Location;
             return await UploadChunksAsync(client, uploadUrl, fileStream, accessToken);
@@ -458,6 +465,30 @@ public sealed class YouTubeService
 
     private static bool HasValue(string? value) =>
         !string.IsNullOrWhiteSpace(value) && value != "*";
+
+    private static string TrimYouTubeError(string body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return "Please reconnect video hosting and try again.";
+
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("error", out var error)
+                && error.TryGetProperty("message", out var message))
+            {
+                var text = message.GetString();
+                if (!string.IsNullOrWhiteSpace(text))
+                    return text!;
+            }
+        }
+        catch
+        {
+            // Use a short raw snippet when YouTube does not return JSON.
+        }
+
+        return body.Length > 180 ? body[..180] : body;
+    }
 
     private string Encrypt(string plaintext)
     {

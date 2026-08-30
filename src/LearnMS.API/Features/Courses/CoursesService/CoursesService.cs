@@ -478,6 +478,22 @@ public sealed class CoursesService : ICoursesService
         await _context.SaveChangesAsync();
     }
 
+    public async Task ExecuteAsync(SetLessonVideoStateCommand command)
+    {
+        var lesson =
+            await _context
+                .Set<Lesson>()
+                .FirstOrDefaultAsync(x =>
+                    x.Id == command.LessonId
+                    && x.LectureId == command.LectureId
+                    && x.Lecture.CourseId == command.CourseId
+                ) ?? throw new ApiException(LessonsErrors.NotFound);
+
+        lesson.VideoId = command.VideoId;
+        _context.Update(lesson);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task ExecuteAsync(ChangeLectureHomeworkScoreCommand command)
     {
         var lecture =
@@ -1548,6 +1564,13 @@ public sealed class CoursesService : ICoursesService
             Id = result.Id,
             RenewalPrice = result.RenewalPrice,
             Title = result.Title,
+            VideoStatus = YouTubeService.IsYouTubeVideoId(result.VideoId)
+                ? "Ready"
+                : result.VideoId == LessonVideoStates.Pending
+                    ? "Processing"
+                    : result.VideoId == LessonVideoStates.Failed
+                        ? "Failed"
+                        : "NoVideo",
             VideoOTP = YouTubeService.IsYouTubeVideoId(result.VideoId)
                 ? _youTubeService.CreatePlaybackOtp(result.VideoId!)
                 : null

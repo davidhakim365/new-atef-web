@@ -12,4 +12,5 @@ export type GetDashboardLessonResult = GetLessonResult & {
   $type: GetDashboardLessonResultType;
   videoId?: string | null;
   videoOTP?: VideoOTP;
+  videoStatus?: "Ready" | "Processing" | "Failed" | "NoVideo";
 };

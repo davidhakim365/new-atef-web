@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text;
+using LearnMS.API.Features.Courses;
+using LearnMS.API.Features.Courses.Contracts;
 using Microsoft.AspNetCore.Http.Features;
 using tusdotnet;
 using tusdotnet.Interfaces;
@@ -91,14 +93,27 @@ public static class VideoUploadEndpoints
                             // Content was already moved; leftover TUS metadata is best-effort.
                         }
 
-                        var queue = ctx.HttpContext.RequestServices.GetRequiredService<LessonVideoUploadQueue>();
-                        await queue.EnqueueAsync(new LessonVideoUploadJob
+                        var job = new LessonVideoUploadJob
                         {
                             CourseId = Guid.Parse(courseId),
                             LectureId = Guid.Parse(lectureId),
                             LessonId = Guid.Parse(lessonId),
                             FilePath = destPath
-                        });
+                        };
+                        LessonVideoUploadWorker.WriteJob(job);
+
+                        await using (var scope = ctx.HttpContext.RequestServices.CreateAsyncScope())
+                        {
+                            var courses = scope.ServiceProvider.GetRequiredService<ICoursesService>();
+                            await courses.ExecuteAsync(new SetLessonVideoStateCommand
+                            {
+                                CourseId = job.CourseId,
+                                LectureId = job.LectureId,
+                                LessonId = job.LessonId,
+                                VideoId = LessonVideoStates.Pending
+                            });
+                        }
+
                         logger.LogInformation("Queued lesson video {LessonId} for publishing", lessonId);
                     }
                 }

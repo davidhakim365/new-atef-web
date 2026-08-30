@@ -30,7 +30,7 @@ import Uppy from "@uppy/core";
 import Dashboard from "@uppy/dashboard";
 import Tus from "@uppy/tus";
 import { ListCollapse, Settings2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "@/components/theme-provider";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -42,7 +42,15 @@ const LessonDetailsPage = () => {
   const navigate = useNavigate();
 
   
-  const {data: lesson, isLoading, isError} = useGetLesson(courseId!, lectureId!, lessonId!);
+  const {data: lesson, isLoading, isError} = useGetLesson(courseId!, lectureId!, lessonId!, {
+    query: {
+      refetchInterval: (query) => {
+        const status = (query.state.data as { data?: GetDashboardLessonResult } | undefined)
+          ?.data?.videoStatus;
+        return status === "Processing" ? 4000 : false;
+      },
+    },
+  });
 
   const deleteLessonMutation = useDeleteLessonMutation();
 
@@ -247,7 +255,6 @@ function LessonVideo({
   const [progress, setProgress] = useState(0);
   const [uploadedLabel, setUploadedLabel] = useState("");
   const [uploading, setUploading] = useState(false);
-  const refreshTimers = useRef<number[]>([]);
 
   const { data: youtubeStatus } = useQuery({
     queryKey: ["youtube-status"],
@@ -319,22 +326,14 @@ function LessonVideo({
       setProgress(100);
       toast({
         title: "Video uploaded successfully",
-        description:
-          "The file reached the server. Playback can take several minutes while the video is published.",
+        description: "Publishing to YouTube now. This page will refresh when the video is ready.",
       });
-      const refreshLesson = () => {
-        qc.invalidateQueries({
-          queryKey: getGetLessonQueryKey(courseId, lectureId, lessonId),
-        });
-        qc.invalidateQueries({
-          queryKey: ["lesson", { id: lessonId }],
-        });
-      };
-      refreshLesson();
-      refreshTimers.current.forEach((id) => window.clearTimeout(id));
-      refreshTimers.current = [15000, 45000, 120000].map((ms) =>
-        window.setTimeout(refreshLesson, ms)
-      );
+      qc.invalidateQueries({
+        queryKey: getGetLessonQueryKey(courseId, lectureId, lessonId),
+      });
+      qc.invalidateQueries({
+        queryKey: ["lesson", { id: lessonId }],
+      });
     };
     const describeError = (error: unknown) => {
       const tusError = error as {
@@ -373,7 +372,6 @@ function LessonVideo({
     instance.on("restriction-failed", onRestriction);
 
     return () => {
-      refreshTimers.current.forEach((id) => window.clearTimeout(id));
       instance.close();
     };
   }, [courseId, lectureId, lessonId, qc, theme]);
@@ -409,6 +407,17 @@ function LessonVideo({
       )}
 
       <div id='lesson-video-uploader' />
+
+      {lesson.videoStatus === "Processing" && (
+        <p className='text-sm text-amber-700 dark:text-amber-300'>
+          Publishing to YouTube. The player will appear here automatically when it is ready.
+        </p>
+      )}
+      {lesson.videoStatus === "Failed" && (
+        <p className='text-sm text-destructive'>
+          Publishing to YouTube failed. Reconnect video hosting if needed, then upload the video again.
+        </p>
+      )}
 
       {uploading && (
         <div className='space-y-2'>
