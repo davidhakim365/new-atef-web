@@ -33,6 +33,15 @@ public sealed class YouTubeController : ControllerBase
     [ApiAuthorize(Role = UserRole.Teacher)]
     public ApiWrapper.Success<string> Connect()
     {
+        if (_youTubeService.HasEnvRefreshToken())
+        {
+            return new()
+            {
+                Data = "",
+                Message = "YouTube is already connected from YouTube__RefreshToken. Reconnecting would replace that token and is not needed."
+            };
+        }
+
         return new()
         {
             Data = _youTubeService.GetAuthorizationUrl(CallbackUrl()),
@@ -53,12 +62,25 @@ public sealed class YouTubeController : ControllerBase
         }
 
         var refreshToken = await _youTubeService.CompleteOAuthAsync(code, CallbackUrl());
+        if (_youTubeService.HasEnvRefreshToken())
+        {
+            return Content(
+                """
+                <html><body style="font-family:system-ui;padding:40px;max-width:720px">
+                  <h2>YouTube is already connected</h2>
+                  <p>This server uses <code>YouTube__RefreshToken</code> from the environment. Leave that value as it is. Do not replace it with a new token.</p>
+                </body></html>
+                """,
+                "text/html"
+            );
+        }
+
         var safeToken = System.Net.WebUtility.HtmlEncode(refreshToken);
         return Content(
             $"""
             <html><body style="font-family:system-ui;padding:40px;max-width:720px">
               <h2>YouTube connected</h2>
-              <p>Copy this refresh token into Render as <code>YouTube__RefreshToken</code>, then save and redeploy. Without it, the connection is lost when the server restarts.</p>
+              <p>Copy this refresh token into Render as <code>YouTube__RefreshToken</code>, then save and redeploy. After that, you do not need to connect again.</p>
               <textarea readonly style="width:100%;height:120px;font-family:monospace">{safeToken}</textarea>
             </body></html>
             """,

@@ -4,13 +4,13 @@
     <RestoreSuccess Condition=" '$(RestoreSuccess)' == '' ">True</RestoreSuccess>
     <RestoreTool Condition=" '$(RestoreTool)' == '' ">NuGet</RestoreTool>
     <ProjectAssetsFile Condition=" '$(ProjectAssetsFile)' == '' ">$(MSBuildThisFileDirectory)project.assets.json</ProjectAssetsFile>
-    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/3075a9b81548c37c4e850c5336117fcd/nuget</NuGetPackageRoot>
-    <NuGetPackageFolders Condition=" '$(NuGetPackageFolders)' == '' ">/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/3075a9b81548c37c4e850c5336117fcd/nuget</NuGetPackageFolders>
+    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/489122e1acdc0b5758c644d04a4c4fb7/nuget</NuGetPackageRoot>
+    <NuGetPackageFolders Condition=" '$(NuGetPackageFolders)' == '' ">/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/489122e1acdc0b5758c644d04a4c4fb7/nuget</NuGetPackageFolders>
     <NuGetProjectStyle Condition=" '$(NuGetProjectStyle)' == '' ">PackageReference</NuGetProjectStyle>
     <NuGetToolVersion Condition=" '$(NuGetToolVersion)' == '' ">7.0.0</NuGetToolVersion>
   </PropertyGroup>
   <ItemGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
-    <SourceRoot Include="/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/3075a9b81548c37c4e850c5336117fcd/nuget/" />
+    <SourceRoot Include="/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/489122e1acdc0b5758c644d04a4c4fb7/nuget/" />
   </ItemGroup>
   <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <Import Project="$(NuGetPackageRoot)/microsoft.extensions.apidescription.server/6.0.5/build/Microsoft.Extensions.ApiDescription.Server.props" Condition="Exists('$(NuGetPackageRoot)/microsoft.extensions.apidescription.server/6.0.5/build/Microsoft.Extensions.ApiDescription.Server.props')" />
@@ -19,7 +19,7 @@
     <Import Project="$(NuGetPackageRoot)/microsoft.entityframeworkcore.design/8.0.0/build/net8.0/Microsoft.EntityFrameworkCore.Design.props" Condition="Exists('$(NuGetPackageRoot)/microsoft.entityframeworkcore.design/8.0.0/build/net8.0/Microsoft.EntityFrameworkCore.Design.props')" />
   </ImportGroup>
   <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
-    <PkgMicrosoft_Extensions_ApiDescription_Server Condition=" '$(PkgMicrosoft_Extensions_ApiDescription_Server)' == '' ">/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/3075a9b81548c37c4e850c5336117fcd/nuget/microsoft.extensions.apidescription.server/6.0.5</PkgMicrosoft_Extensions_ApiDescription_Server>
-    <PkgMicrosoft_CodeAnalysis_Analyzers Condition=" '$(PkgMicrosoft_CodeAnalysis_Analyzers)' == '' ">/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/3075a9b81548c37c4e850c5336117fcd/nuget/microsoft.codeanalysis.analyzers/3.3.3</PkgMicrosoft_CodeAnalysis_Analyzers>
+    <PkgMicrosoft_Extensions_ApiDescription_Server Condition=" '$(PkgMicrosoft_Extensions_ApiDescription_Server)' == '' ">/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/489122e1acdc0b5758c644d04a4c4fb7/nuget/microsoft.extensions.apidescription.server/6.0.5</PkgMicrosoft_Extensions_ApiDescription_Server>
+    <PkgMicrosoft_CodeAnalysis_Analyzers Condition=" '$(PkgMicrosoft_CodeAnalysis_Analyzers)' == '' ">/var/folders/1f/6tt152yn02zd__gf76_s61wr0000gn/T/cursor-sandbox-cache/489122e1acdc0b5758c644d04a4c4fb7/nuget/microsoft.codeanalysis.analyzers/3.3.3</PkgMicrosoft_CodeAnalysis_Analyzers>
   </PropertyGroup>
 </Project>

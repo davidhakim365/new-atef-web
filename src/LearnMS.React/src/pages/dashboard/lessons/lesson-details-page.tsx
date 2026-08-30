@@ -380,7 +380,12 @@ function LessonVideo({
     const res = await api.get<ApiResponse<string>>("/api/youtube/connect");
     if (res.data.data) {
       window.location.href = res.data.data;
+      return;
     }
+    toast({
+      title: "Video hosting is already connected",
+      description: res.data.message,
+    });
   };
 
   return (
@@ -390,12 +395,9 @@ function LessonVideo({
           <ListCollapse className='dashboard-icon' />
           Lesson Content
         </div>
-        {profile?.data?.role === "Teacher" && (
-          <Button
-            type='button'
-            variant={youtubeStatus?.data?.connected ? "outline" : "default"}
-            onClick={connectYouTube}>
-            {youtubeStatus?.data?.connected ? "Reconnect hosting" : "Connect video hosting"}
+        {profile?.data?.role === "Teacher" && youtubeStatus?.data?.connected === false && (
+          <Button type='button' onClick={connectYouTube}>
+            Connect video hosting
           </Button>
         )}
       </div>
@@ -415,7 +417,7 @@ function LessonVideo({
       )}
       {lesson.videoStatus === "Failed" && (
         <p className='text-sm text-destructive'>
-          Publishing to YouTube failed. Reconnect video hosting if needed, then upload the video again.
+          Publishing to YouTube failed. Check that YouTube__RefreshToken is still valid, then upload again.
         </p>
       )}
 

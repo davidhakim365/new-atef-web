@@ -49,6 +49,8 @@ public sealed class YouTubeService
             && HasValue(GetRefreshToken());
     }
 
+    public bool HasEnvRefreshToken() => HasValue(_config.RefreshToken);
+
     public static bool IsYouTubeVideoId(string? videoId) =>
         !string.IsNullOrWhiteSpace(videoId) && YouTubeIdRegex.IsMatch(videoId);
 
@@ -134,7 +136,7 @@ public sealed class YouTubeService
             ["response_type"] = "code",
             ["scope"] = string.Join(" ", UploadScopes),
             ["access_type"] = "offline",
-            ["prompt"] = "consent",
+            ["prompt"] = HasEnvRefreshToken() ? "none" : "consent",
             ["include_granted_scopes"] = "true"
         };
 
@@ -169,7 +171,8 @@ public sealed class YouTubeService
         if (!HasValue(refreshToken))
             throw new ApiException(YouTubeErrors.NotConfigured);
 
-        SaveRefreshToken(refreshToken!);
+        if (!HasEnvRefreshToken())
+            SaveRefreshToken(refreshToken!);
 
         if (doc.RootElement.TryGetProperty("access_token", out var accessTokenEl))
         {
@@ -410,6 +413,13 @@ public sealed class YouTubeService
             _accessToken = doc.RootElement.GetProperty("access_token").GetString();
             var expiresIn = doc.RootElement.TryGetProperty("expires_in", out var exp) ? exp.GetInt32() : 3500;
             _accessTokenExpiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresIn - 60);
+
+            if (!HasEnvRefreshToken()
+                && doc.RootElement.TryGetProperty("refresh_token", out var rotated)
+                && HasValue(rotated.GetString()))
+            {
+                SaveRefreshToken(rotated.GetString()!);
+            }
 
             if (string.IsNullOrWhiteSpace(_accessToken))
                 throw new ApiException(YouTubeErrors.NotConfigured);
