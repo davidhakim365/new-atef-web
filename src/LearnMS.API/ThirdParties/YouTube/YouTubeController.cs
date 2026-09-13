@@ -53,13 +53,16 @@ public sealed class YouTubeController : ControllerBase
             );
         }
 
-        await _youTubeService.CompleteOAuthAsync(code, CallbackUrl());
+        var refreshToken = await _youTubeService.CompleteOAuthAsync(code, CallbackUrl());
+        var safeToken = System.Net.WebUtility.HtmlEncode(refreshToken);
         return Content(
-            """
+            $"""
             <html><body style="font-family:system-ui;padding:40px;max-width:720px">
               <h2>YouTube connected</h2>
-              <p>The refresh token was saved on the server. You can close this tab and upload lesson videos. You do not need to paste the token into Render after every connect.</p>
-              <p>In Google Cloud, set the OAuth consent screen to <b>In production</b>. If it stays in Testing, Google expires the token about every 7 days and you will have to connect again.</p>
+              <p>This is your refresh token. The server also saved it automatically.</p>
+              <p>Optional: paste it in Render as <code>YouTube__RefreshToken</code> if you want a backup.</p>
+              <textarea readonly style="width:100%;height:120px;font-family:monospace">{safeToken}</textarea>
+              <p>In Google Cloud, set the OAuth consent screen to <b>In production</b> so Google does not expire this token every 7 days.</p>
             </body></html>
             """,
             "text/html"
