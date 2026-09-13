@@ -1,7 +1,7 @@
 
 namespace LearnMS.API.Common;
 
-public class ApiException(ApiError error) : Exception
+public class ApiException(ApiError error) : Exception(error.Message)
 {
     public ApiError Error => error;
 }

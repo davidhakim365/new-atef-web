@@ -1,4 +1,5 @@
 using System.Text.Json;
+using LearnMS.API.Common;
 using LearnMS.API.Features.Courses;
 using LearnMS.API.Features.Courses.Contracts;
 
@@ -117,6 +118,7 @@ public sealed class LessonVideoUploadWorker : BackgroundService
             _logger.LogError(ex, "Failed to publish lesson video for {LessonId}", job.LessonId);
             try
             {
+                var reason = ex is ApiException api ? api.Error.Message : ex.Message;
                 await using var scope = _scopeFactory.CreateAsyncScope();
                 var courses = scope.ServiceProvider.GetRequiredService<ICoursesService>();
                 await courses.ExecuteAsync(new SetLessonVideoStateCommand
@@ -124,7 +126,7 @@ public sealed class LessonVideoUploadWorker : BackgroundService
                     CourseId = job.CourseId,
                     LectureId = job.LectureId,
                     LessonId = job.LessonId,
-                    VideoId = LessonVideoStates.Failed
+                    VideoId = LessonVideoStates.MarkFailed(reason)
                 });
             }
             catch (Exception markEx)

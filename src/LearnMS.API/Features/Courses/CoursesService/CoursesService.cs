@@ -1568,9 +1568,10 @@ public sealed class CoursesService : ICoursesService
                 ? "Ready"
                 : result.VideoId == LessonVideoStates.Pending
                     ? "Processing"
-                    : result.VideoId == LessonVideoStates.Failed
+                    : LessonVideoStates.IsFailed(result.VideoId)
                         ? "Failed"
                         : "NoVideo",
+            VideoError = LessonVideoStates.ErrorMessage(result.VideoId),
             VideoOTP = YouTubeService.IsYouTubeVideoId(result.VideoId)
                 ? _youTubeService.CreatePlaybackOtp(result.VideoId!)
                 : null

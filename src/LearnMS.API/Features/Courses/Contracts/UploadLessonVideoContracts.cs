@@ -20,4 +20,26 @@ public static class LessonVideoStates
 {
     public const string Pending = "pending";
     public const string Failed = "failed";
+    public const string FailedPrefix = "failed:";
+
+    public static bool IsFailed(string? videoId) =>
+        videoId == Failed
+        || videoId?.StartsWith(FailedPrefix, StringComparison.Ordinal) == true;
+
+    public static string MarkFailed(string? reason)
+    {
+        var clean = string.IsNullOrWhiteSpace(reason)
+            ? "Publishing to YouTube failed."
+            : reason.Replace('\n', ' ').Trim();
+        if (clean.Length > 280)
+            clean = clean[..280];
+        return FailedPrefix + clean;
+    }
+
+    public static string? ErrorMessage(string? videoId)
+    {
+        if (videoId?.StartsWith(FailedPrefix, StringComparison.Ordinal) == true)
+            return videoId[FailedPrefix.Length..];
+        return null;
+    }
 }

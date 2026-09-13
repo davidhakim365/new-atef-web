@@ -13,4 +13,5 @@ export type GetDashboardLessonResult = GetLessonResult & {
   videoId?: string | null;
   videoOTP?: VideoOTP;
   videoStatus?: "Ready" | "Processing" | "Failed" | "NoVideo";
+  videoError?: string | null;
 };

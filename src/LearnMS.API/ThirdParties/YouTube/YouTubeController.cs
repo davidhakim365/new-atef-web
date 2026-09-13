@@ -20,9 +20,9 @@ public sealed class YouTubeController : ControllerBase
 
     [HttpGet("status")]
     [ApiAuthorize(Role = UserRole.Assistant, Permissions = [Permission.ManageCourses])]
-    public ApiWrapper.Success<object> Status()
+    public async Task<ApiWrapper.Success<object>> Status()
     {
-        var status = _youTubeService.GetConnectionStatus();
+        var status = await _youTubeService.GetConnectionStatusAsync();
         return new()
         {
             Data = new { connected = status.Connected },

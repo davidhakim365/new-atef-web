@@ -395,7 +395,8 @@ function LessonVideo({
           <ListCollapse className='dashboard-icon' />
           Lesson Content
         </div>
-        {profile?.data?.role === "Teacher" && youtubeStatus?.data?.connected === false && (
+        {profile?.data?.role === "Teacher"
+          && (youtubeStatus?.data?.connected === false || lesson.videoStatus === "Failed") && (
           <Button type='button' onClick={connectYouTube}>
             Connect video hosting
           </Button>
@@ -418,7 +419,8 @@ function LessonVideo({
       )}
       {lesson.videoStatus === "Failed" && (
         <p className='text-sm text-destructive'>
-          Publishing to YouTube failed. Check that YouTube__RefreshToken is still valid, then upload again.
+          {lesson.videoError
+            || "Publishing to YouTube failed. Connect video hosting again, then upload the video."}
         </p>
       )}
 

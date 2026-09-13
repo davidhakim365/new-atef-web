@@ -52,7 +52,7 @@ public sealed class YouTubeService
             && HasValue(GetRefreshToken());
     }
 
-    public YouTubeConnectionStatus GetConnectionStatus()
+    public async Task<YouTubeConnectionStatus> GetConnectionStatusAsync(CancellationToken cancellationToken = default)
     {
         if (!HasValue(ClientId) || !HasValue(ClientSecret))
         {
@@ -62,7 +62,7 @@ public sealed class YouTubeService
             );
         }
 
-        if (!HasValue(GetRefreshToken()))
+        if (!RefreshTokenCandidates().Any())
         {
             return new YouTubeConnectionStatus(
                 false,
@@ -70,7 +70,15 @@ public sealed class YouTubeService
             );
         }
 
-        return new YouTubeConnectionStatus(true, "YouTube is connected.");
+        try
+        {
+            await GetAccessTokenAsync();
+            return new YouTubeConnectionStatus(true, "YouTube is connected.");
+        }
+        catch (ApiException ex)
+        {
+            return new YouTubeConnectionStatus(false, ex.Error.Message);
+        }
     }
 
     private string ClientId => FirstConfigured("YouTube:ClientId", "YouTube__ClientId", "YOUTUBE_CLIENT_ID") ?? _config.ClientId;
@@ -415,39 +423,50 @@ public sealed class YouTubeService
             if (!string.IsNullOrWhiteSpace(_accessToken) && _accessTokenExpiresAt > DateTimeOffset.UtcNow)
                 return _accessToken!;
 
-            var refreshToken = GetRefreshToken();
-            if (!HasValue(refreshToken))
-                throw new ApiException(YouTubeErrors.NotConfigured);
-
+            var lastError = "YouTube refresh token is missing.";
             var client = _httpClientFactory.CreateClient("YouTubeApi");
-            using var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            foreach (var refreshToken in RefreshTokenCandidates())
             {
-                ["client_id"] = ClientId,
-                ["client_secret"] = ClientSecret,
-                ["refresh_token"] = refreshToken!,
-                ["grant_type"] = "refresh_token"
-            });
+                using var content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["client_id"] = ClientId,
+                    ["client_secret"] = ClientSecret,
+                    ["refresh_token"] = refreshToken,
+                    ["grant_type"] = "refresh_token"
+                });
 
-            var response = await client.PostAsync("https://oauth2.googleapis.com/token", content);
-            var body = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new ApiException(YouTubeErrors.NotConfigured);
+                var response = await client.PostAsync("https://oauth2.googleapis.com/token", content);
+                var body = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    lastError = DescribeTokenError(body);
+                    continue;
+                }
 
-            using var doc = JsonDocument.Parse(body);
-            _accessToken = doc.RootElement.GetProperty("access_token").GetString();
-            var expiresIn = doc.RootElement.TryGetProperty("expires_in", out var exp) ? exp.GetInt32() : 3500;
-            _accessTokenExpiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresIn - 60);
+                using var doc = JsonDocument.Parse(body);
+                _accessToken = doc.RootElement.GetProperty("access_token").GetString();
+                var expiresIn = doc.RootElement.TryGetProperty("expires_in", out var exp) ? exp.GetInt32() : 3500;
+                _accessTokenExpiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresIn - 60);
 
-            if (doc.RootElement.TryGetProperty("refresh_token", out var rotated)
-                && HasValue(rotated.GetString()))
-            {
-                SaveRefreshToken(rotated.GetString()!);
+                var tokenToStore = refreshToken;
+                if (doc.RootElement.TryGetProperty("refresh_token", out var rotated)
+                    && HasValue(rotated.GetString()))
+                {
+                    tokenToStore = rotated.GetString()!;
+                }
+
+                SaveRefreshToken(tokenToStore);
+                if (string.IsNullOrWhiteSpace(_accessToken))
+                    throw new ApiException(YouTubeErrors.NotConfigured);
+
+                return _accessToken;
             }
 
-            if (string.IsNullOrWhiteSpace(_accessToken))
-                throw new ApiException(YouTubeErrors.NotConfigured);
-
-            return _accessToken;
+            throw new ApiException(new ApiError(
+                YouTubeErrors.NotConfigured.Code,
+                lastError,
+                YouTubeErrors.NotConfigured.StatusCode
+            ));
         }
         finally
         {
@@ -461,17 +480,22 @@ public sealed class YouTubeService
         _accessTokenExpiresAt = DateTimeOffset.MinValue;
     }
 
-    private string? GetRefreshToken()
+    private string? GetRefreshToken() => RefreshTokenCandidates().FirstOrDefault();
+
+    private IEnumerable<string> RefreshTokenCandidates()
     {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var path in TokenFilePaths())
         {
             var fromFile = ReadRefreshToken(path);
-            if (HasValue(fromFile))
-                return fromFile;
+            if (HasValue(fromFile) && seen.Add(fromFile!))
+                yield return fromFile!;
         }
 
-        return FirstConfigured("YouTube:RefreshToken", "YouTube__RefreshToken", "YOUTUBE_REFRESH_TOKEN")
+        var fromEnv = FirstConfigured("YouTube:RefreshToken", "YouTube__RefreshToken", "YOUTUBE_REFRESH_TOKEN")
             ?? (HasValue(_config.RefreshToken) ? _config.RefreshToken : null);
+        if (HasValue(fromEnv) && seen.Add(fromEnv!))
+            yield return fromEnv!;
     }
 
     private void SaveRefreshToken(string refreshToken)
@@ -538,6 +562,21 @@ public sealed class YouTubeService
 
     private static bool HasValue(string? value) =>
         !string.IsNullOrWhiteSpace(value) && value != "*";
+
+    private static string DescribeTokenError(string body)
+    {
+        var detail = TrimYouTubeError(body);
+        if (detail.Contains("invalid_grant", StringComparison.OrdinalIgnoreCase)
+            || detail.Contains("Token has been expired", StringComparison.OrdinalIgnoreCase)
+            || detail.Contains("revoked", StringComparison.OrdinalIgnoreCase))
+        {
+            return "The YouTube refresh token is expired or revoked. Connect video hosting again. In Google Cloud, set the OAuth consent screen to In production so this does not happen every week.";
+        }
+
+        return string.IsNullOrWhiteSpace(detail)
+            ? "YouTube rejected the saved refresh token. Connect video hosting again."
+            : detail;
+    }
 
     private static string TrimYouTubeError(string body)
     {
