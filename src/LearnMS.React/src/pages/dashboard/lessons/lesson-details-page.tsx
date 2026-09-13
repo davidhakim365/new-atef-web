@@ -404,7 +404,8 @@ function LessonVideo({
 
       {youtubeStatus?.data && youtubeStatus.data.connected === false && (
         <p className='text-sm text-amber-700 dark:text-amber-300'>
-          Connect video hosting once, then you can upload lesson videos from this page.
+          {youtubeStatus.message ||
+            "Connect video hosting once. The server will remember it on the disk, so you should not need to paste a refresh token after every deploy."}
         </p>
       )}
 

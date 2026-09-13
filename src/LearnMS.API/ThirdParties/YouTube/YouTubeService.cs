@@ -21,6 +21,7 @@ public sealed class YouTubeService
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IWebHostEnvironment _environment;
+    private readonly IConfiguration _configuration;
     private readonly YouTubeConfig _config;
     private readonly byte[] _tokenKey;
     private readonly SemaphoreSlim _tokenLock = new(1, 1);
@@ -32,24 +33,48 @@ public sealed class YouTubeService
     public YouTubeService(
         IHttpClientFactory httpClientFactory,
         IWebHostEnvironment environment,
+        IConfiguration configuration,
         IOptions<YouTubeConfig> config,
         IOptions<JwtBearerConfig> jwtConfig
     )
     {
         _httpClientFactory = httpClientFactory;
         _environment = environment;
+        _configuration = configuration;
         _config = config.Value;
         _tokenKey = SHA256.HashData(Encoding.UTF8.GetBytes(jwtConfig.Value.Secret ?? "learnms-youtube"));
     }
 
     public bool IsConfigured()
     {
-        return HasValue(_config.ClientId)
-            && HasValue(_config.ClientSecret)
+        return HasValue(ClientId)
+            && HasValue(ClientSecret)
             && HasValue(GetRefreshToken());
     }
 
-    public bool HasEnvRefreshToken() => HasValue(_config.RefreshToken);
+    public YouTubeConnectionStatus GetConnectionStatus()
+    {
+        if (!HasValue(ClientId) || !HasValue(ClientSecret))
+        {
+            return new YouTubeConnectionStatus(
+                false,
+                "Set YouTube__ClientId and YouTube__ClientSecret on the server."
+            );
+        }
+
+        if (!HasValue(GetRefreshToken()))
+        {
+            return new YouTubeConnectionStatus(
+                false,
+                "Connect video hosting once. The refresh token is saved on the server disk so you do not need to paste it again after each deploy."
+            );
+        }
+
+        return new YouTubeConnectionStatus(true, "YouTube is connected.");
+    }
+
+    private string ClientId => FirstConfigured("YouTube:ClientId", "YouTube__ClientId", "YOUTUBE_CLIENT_ID") ?? _config.ClientId;
+    private string ClientSecret => FirstConfigured("YouTube:ClientSecret", "YouTube__ClientSecret", "YOUTUBE_CLIENT_SECRET") ?? _config.ClientSecret;
 
     public static bool IsYouTubeVideoId(string? videoId) =>
         !string.IsNullOrWhiteSpace(videoId) && YouTubeIdRegex.IsMatch(videoId);
@@ -126,17 +151,17 @@ public sealed class YouTubeService
 
     public string GetAuthorizationUrl(string redirectUri)
     {
-        if (!HasValue(_config.ClientId) || !HasValue(_config.ClientSecret))
+        if (!HasValue(ClientId) || !HasValue(ClientSecret))
             throw new ApiException(YouTubeErrors.NotConfigured);
 
         var query = new Dictionary<string, string>
         {
-            ["client_id"] = _config.ClientId,
+            ["client_id"] = ClientId,
             ["redirect_uri"] = redirectUri,
             ["response_type"] = "code",
             ["scope"] = string.Join(" ", UploadScopes),
             ["access_type"] = "offline",
-            ["prompt"] = HasEnvRefreshToken() ? "none" : "consent",
+            ["prompt"] = "consent",
             ["include_granted_scopes"] = "true"
         };
 
@@ -152,8 +177,8 @@ public sealed class YouTubeService
         using var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["code"] = code,
-            ["client_id"] = _config.ClientId,
-            ["client_secret"] = _config.ClientSecret,
+            ["client_id"] = ClientId,
+            ["client_secret"] = ClientSecret,
             ["redirect_uri"] = redirectUri,
             ["grant_type"] = "authorization_code"
         });
@@ -171,8 +196,7 @@ public sealed class YouTubeService
         if (!HasValue(refreshToken))
             throw new ApiException(YouTubeErrors.NotConfigured);
 
-        if (!HasEnvRefreshToken())
-            SaveRefreshToken(refreshToken!);
+        SaveRefreshToken(refreshToken!);
 
         if (doc.RootElement.TryGetProperty("access_token", out var accessTokenEl))
         {
@@ -398,8 +422,8 @@ public sealed class YouTubeService
             var client = _httpClientFactory.CreateClient("YouTubeApi");
             using var content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["client_id"] = _config.ClientId,
-                ["client_secret"] = _config.ClientSecret,
+                ["client_id"] = ClientId,
+                ["client_secret"] = ClientSecret,
                 ["refresh_token"] = refreshToken!,
                 ["grant_type"] = "refresh_token"
             });
@@ -414,8 +438,7 @@ public sealed class YouTubeService
             var expiresIn = doc.RootElement.TryGetProperty("expires_in", out var exp) ? exp.GetInt32() : 3500;
             _accessTokenExpiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresIn - 60);
 
-            if (!HasEnvRefreshToken()
-                && doc.RootElement.TryGetProperty("refresh_token", out var rotated)
+            if (doc.RootElement.TryGetProperty("refresh_token", out var rotated)
                 && HasValue(rotated.GetString()))
             {
                 SaveRefreshToken(rotated.GetString()!);
@@ -440,10 +463,49 @@ public sealed class YouTubeService
 
     private string? GetRefreshToken()
     {
-        if (HasValue(_config.RefreshToken))
-            return _config.RefreshToken;
+        foreach (var path in TokenFilePaths())
+        {
+            var fromFile = ReadRefreshToken(path);
+            if (HasValue(fromFile))
+                return fromFile;
+        }
 
-        var path = TokenFilePath();
+        return FirstConfigured("YouTube:RefreshToken", "YouTube__RefreshToken", "YOUTUBE_REFRESH_TOKEN")
+            ?? (HasValue(_config.RefreshToken) ? _config.RefreshToken : null);
+    }
+
+    private void SaveRefreshToken(string refreshToken)
+    {
+        lock (_fileLock)
+        {
+            var json = JsonSerializer.Serialize(new YouTubeOAuthToken { RefreshToken = refreshToken });
+            foreach (var path in TokenFilePaths())
+            {
+                try
+                {
+                    var directory = Path.GetDirectoryName(path);
+                    if (!string.IsNullOrWhiteSpace(directory))
+                        Directory.CreateDirectory(directory);
+                    File.WriteAllText(path, json);
+                    break;
+                }
+                catch
+                {
+                    // Try the next durable path.
+                }
+            }
+        }
+    }
+
+    private IEnumerable<string> TokenFilePaths()
+    {
+        if (Directory.Exists("/data"))
+            yield return "/data/youtube-oauth.json";
+        yield return Path.Combine(_environment.ContentRootPath, "youtube-oauth.json");
+    }
+
+    private string? ReadRefreshToken(string path)
+    {
         if (!File.Exists(path))
             return null;
 
@@ -462,16 +524,17 @@ public sealed class YouTubeService
         }
     }
 
-    private void SaveRefreshToken(string refreshToken)
+    private string? FirstConfigured(params string[] keys)
     {
-        lock (_fileLock)
+        foreach (var key in keys)
         {
-            var json = JsonSerializer.Serialize(new YouTubeOAuthToken { RefreshToken = refreshToken });
-            File.WriteAllText(TokenFilePath(), json);
+            var value = _configuration[key];
+            if (HasValue(value))
+                return value;
         }
-    }
 
-    private string TokenFilePath() => Path.Combine(_environment.ContentRootPath, "youtube-oauth.json");
+        return null;
+    }
 
     private static bool HasValue(string? value) =>
         !string.IsNullOrWhiteSpace(value) && value != "*";
@@ -551,3 +614,5 @@ public sealed class YouTubeService
         public long Exp { get; set; }
     }
 }
+
+public sealed record YouTubeConnectionStatus(bool Connected, string Message);

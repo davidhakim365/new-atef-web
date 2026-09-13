@@ -22,10 +22,11 @@ public sealed class YouTubeController : ControllerBase
     [ApiAuthorize(Role = UserRole.Assistant, Permissions = [Permission.ManageCourses])]
     public ApiWrapper.Success<object> Status()
     {
+        var status = _youTubeService.GetConnectionStatus();
         return new()
         {
-            Data = new { connected = _youTubeService.IsConfigured() },
-            Message = _youTubeService.IsConfigured() ? "YouTube is connected" : "YouTube is not connected"
+            Data = new { connected = status.Connected },
+            Message = status.Message
         };
     }
 
@@ -33,15 +34,6 @@ public sealed class YouTubeController : ControllerBase
     [ApiAuthorize(Role = UserRole.Teacher)]
     public ApiWrapper.Success<string> Connect()
     {
-        if (_youTubeService.HasEnvRefreshToken())
-        {
-            return new()
-            {
-                Data = "",
-                Message = "YouTube is already connected from YouTube__RefreshToken. Reconnecting would replace that token and is not needed."
-            };
-        }
-
         return new()
         {
             Data = _youTubeService.GetAuthorizationUrl(CallbackUrl()),
@@ -61,27 +53,13 @@ public sealed class YouTubeController : ControllerBase
             );
         }
 
-        var refreshToken = await _youTubeService.CompleteOAuthAsync(code, CallbackUrl());
-        if (_youTubeService.HasEnvRefreshToken())
-        {
-            return Content(
-                """
-                <html><body style="font-family:system-ui;padding:40px;max-width:720px">
-                  <h2>YouTube is already connected</h2>
-                  <p>This server uses <code>YouTube__RefreshToken</code> from the environment. Leave that value as it is. Do not replace it with a new token.</p>
-                </body></html>
-                """,
-                "text/html"
-            );
-        }
-
-        var safeToken = System.Net.WebUtility.HtmlEncode(refreshToken);
+        await _youTubeService.CompleteOAuthAsync(code, CallbackUrl());
         return Content(
-            $"""
+            """
             <html><body style="font-family:system-ui;padding:40px;max-width:720px">
               <h2>YouTube connected</h2>
-              <p>Copy this refresh token into Render as <code>YouTube__RefreshToken</code>, then save and redeploy. After that, you do not need to connect again.</p>
-              <textarea readonly style="width:100%;height:120px;font-family:monospace">{safeToken}</textarea>
+              <p>The refresh token was saved on the server. You can close this tab and upload lesson videos. You do not need to paste the token into Render after every connect.</p>
+              <p>In Google Cloud, set the OAuth consent screen to <b>In production</b>. If it stays in Testing, Google expires the token about every 7 days and you will have to connect again.</p>
             </body></html>
             """,
             "text/html"
