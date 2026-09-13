@@ -395,10 +395,12 @@ function LessonVideo({
           <ListCollapse className='dashboard-icon' />
           Lesson Content
         </div>
-        {profile?.data?.role === "Teacher"
-          && (youtubeStatus?.data?.connected === false || lesson.videoStatus === "Failed") && (
-          <Button type='button' onClick={connectYouTube}>
-            Connect video hosting
+        {(profile?.data?.role === "Teacher" || profile?.data?.role === "Assistant") && (
+          <Button
+            type='button'
+            variant={youtubeStatus?.data?.connected ? "outline" : "default"}
+            onClick={connectYouTube}>
+            {youtubeStatus?.data?.connected ? "Reconnect video hosting" : "Connect video hosting"}
           </Button>
         )}
       </div>

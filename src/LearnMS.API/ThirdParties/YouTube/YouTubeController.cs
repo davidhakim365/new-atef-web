@@ -31,7 +31,7 @@ public sealed class YouTubeController : ControllerBase
     }
 
     [HttpGet("connect")]
-    [ApiAuthorize(Role = UserRole.Teacher)]
+    [ApiAuthorize(Role = UserRole.Assistant, Permissions = [Permission.ManageCourses])]
     public ApiWrapper.Success<string> Connect()
     {
         return new()
