@@ -43,11 +43,29 @@ export const StudentCoursesPage = () => {
   const isRTL = i18n.language === "ar";
 
   const { levelNum } = useParams();
-  const level = levelNum ? (`Level${levelNum}` as StudentLevel) : undefined;
+  const { data: profile, isLoading: isProfileLoading } = useGetProfile();
 
-  const { data, isLoading } = useGetStudentCourses({
-    level: level || "Level0",
-  });
+  const levelFromUrl = levelNum
+    ? (`Level${levelNum}` as StudentLevel)
+    : undefined;
+  const studentLevel =
+    profile?.data?.$type === "GetStudentProfileResult"
+      ? profile.data.level
+      : undefined;
+  const level = levelFromUrl ?? studentLevel;
+  const canFetchCourses = Boolean(levelFromUrl) || !isProfileLoading;
+
+  const { data, isLoading } = useGetStudentCourses(
+    {
+      level: level || "Level0",
+    },
+    {
+      query: {
+        enabled: canFetchCourses,
+      },
+    }
+  );
+  const isCoursesLoading = isLoading || !canFetchCourses;
 
   const getLevelDisplayName = (level: string) => {
     switch (level) {
@@ -110,7 +128,7 @@ export const StudentCoursesPage = () => {
         dir={isRTL ? "rtl" : "ltr"}
         className="flex flex-wrap items-center justify-center w-full gap-4 bg-coursePage"
       >
-        {isLoading ? (
+        {isCoursesLoading ? (
           <CoursesGridSkeleton count={8} />
         ) : (
           <div className="z-10 grid w-full grid-cols-1 gap-4 p-4 sm:gap-6 sm:p-6 md:gap-8 md:p-12 lg:p-20 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
